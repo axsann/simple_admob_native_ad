@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark mode colors -->
+    <color name="ad_banner_background">#1C1C1E</color>
+    <color name="ad_banner_default_text">#FFFFFF</color>
+    <color name="ad_banner_gray_text">#8E8E93</color>
+    <color name="ad_banner_cta_text">#FFFFFF</color>
+    <color name="ad_banner_cta_button_background">#0A84FF</color>
+    <color name="ad_banner_ad_label_background">#3A3A3C</color>
+    <color name="ad_banner_ad_label_text">#EBEBF5</color>
+    <color name="ad_banner_icon_background">#2C2C2E</color>
+    <color name="ad_banner_icon_border">#3A3A3C</color>
+</resources>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@color/ad_banner_icon_background"/>
+    <!-- NOTE: This radius is overridden dynamically in SimpleNativeAdFactory.kt (iconWidth * 0.10) -->
+    <!-- This value is only used as a fallback for older API levels or layout preview -->
+    <corners android:radius="6dp"/>
+    <stroke
+        android:width="0.5dp"
+        android:color="@color/ad_banner_icon_border"/>
+</shape>

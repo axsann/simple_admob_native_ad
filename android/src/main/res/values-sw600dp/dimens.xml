@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tablet-specific dimensions (for devices with smallest width >= 600dp) -->
+    <!-- These override the default values in values/dimens.xml -->
+
+    <!-- Larger margins for tablets and large screens -->
+    <dimen name="ad_banner_default_margin">12dp</dimen>
+    <dimen name="ad_banner_small_margin">8dp</dimen>
+
+    <!-- Larger CTA button for tablets (vs phone: 35dp height, 122dp min width) -->
+    <dimen name="ad_banner_cta_button_height">45dp</dimen>
+    <dimen name="ad_banner_cta_button_min_width">140dp</dimen>
+
+    <!-- Larger text sizes for tablets (vs phone: 12sp/13sp/15sp) -->
+    <dimen name="ad_banner_text_size_small">14sp</dimen>
+    <dimen name="ad_banner_text_size_large">16sp</dimen>
+    <dimen name="ad_banner_text_size_cta">17sp</dimen>
+</resources>

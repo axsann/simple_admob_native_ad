@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ad_banner_test_background_color">#00F4F4F4</color>
+    <color name="ad_banner_test_background_color_2">#00A3A3A3</color>
+    <color name="ad_banner_black">#000000</color>
+    <color name="ad_banner_white">#FFFFFF</color>
+    <color name="ad_banner_red">#FF0000</color>
+    <color name="ad_banner_green">#00FF00</color>
+    <color name="ad_banner_blue">#4285f4</color>
+    <color name="ad_banner_ad_green">#3A6728</color>
+    <color name="ad_banner_gray">#808080</color>
+    <color name="ad_banner_outline">#FFFFFF</color>
+    <color name="ad_banner_default_text">#000000</color>
+    <color name="ad_banner_gray_text">#8e8e93</color>
+    <color name="ad_banner_background">#FFFFFF</color>
+    <color name="ad_banner_cta_text">#FFFFFF</color>
+    <color name="ad_banner_cta_button_background">#007AFF</color>
+    <color name="ad_banner_ad_label_background">#E5E5EA</color>
+    <color name="ad_banner_ad_label_text">#3C3C43</color>
+    <color name="ad_banner_icon_background">#FCFCFC</color>
+    <color name="ad_banner_icon_border">#E5E5EA</color>
+
+    <!-- Light mode colors (explicit) -->
+    <color name="ad_banner_background_light">#FFFFFF</color>
+    <color name="ad_banner_default_text_light">#000000</color>
+    <color name="ad_banner_gray_text_light">#8E8E93</color>
+    <color name="ad_banner_cta_text_light">#FFFFFF</color>
+    <color name="ad_banner_cta_button_background_light">#007AFF</color>
+    <color name="ad_banner_ad_label_background_light">#E5E5EA</color>
+    <color name="ad_banner_ad_label_text_light">#3C3C43</color>
+    <color name="ad_banner_icon_background_light">#FCFCFC</color>
+
+    <!-- Dark mode colors (explicit) -->
+    <color name="ad_banner_background_dark">#1C1C1E</color>
+    <color name="ad_banner_default_text_dark">#FFFFFF</color>
+    <color name="ad_banner_gray_text_dark">#8E8E93</color>
+    <color name="ad_banner_cta_text_dark">#FFFFFF</color>
+    <color name="ad_banner_cta_button_background_dark">#0A84FF</color>
+    <color name="ad_banner_ad_label_background_dark">#3A3A3C</color>
+    <color name="ad_banner_ad_label_text_dark">#EBEBF5</color>
+    <color name="ad_banner_icon_background_dark">#2C2C2E</color>
+</resources>

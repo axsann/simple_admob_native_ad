@@ -1,0 +1,10 @@
+## 1.0.0
+
+* Initial release
+* Native ad banner support for iOS and Android
+* Auto-refresh with configurable interval
+* Automatic lifecycle management
+* Dark/light mode support with `forceColorMode` parameter
+* Customizable background color with `backgroundColor` parameter
+* Customizable placeholder and borders
+* Theme-aware color scheme
