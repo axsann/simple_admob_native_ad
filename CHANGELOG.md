@@ -1,3 +1,7 @@
+## 1.0.1
+
+* Added screenshots to pub.dev listing
+
 ## 1.0.0
 
 * Initial release
