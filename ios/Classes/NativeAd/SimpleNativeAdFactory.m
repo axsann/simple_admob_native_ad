@@ -24,6 +24,20 @@
     // Apply color scheme based on color mode
     [self applyColorScheme:nativeAdView isDarkMode:isDarkMode];
 
+    // Apply left padding if specified
+    NSNumber *leftPaddingValue = customOptions[@"leftPadding"];
+    if (leftPaddingValue != nil) {
+        CGFloat leftPadding = [leftPaddingValue doubleValue];
+        [self applyLeftPadding:nativeAdView leftPadding:leftPadding];
+    }
+
+    // Apply right padding if specified
+    NSNumber *rightPaddingValue = customOptions[@"rightPadding"];
+    if (rightPaddingValue != nil) {
+        CGFloat rightPadding = [rightPaddingValue doubleValue];
+        [self applyRightPadding:nativeAdView rightPadding:rightPadding];
+    }
+
     // Associate the native ad view with the native ad object. This is
     // required to make the ad clickable.
     nativeAdView.nativeAd = nativeAd;
@@ -174,6 +188,38 @@
 
         [ctaButton setTitleColor:UIColor.whiteColor forState:UIControlStateNormal];
         ctaButton.backgroundColor = [UIColor colorWithRed:0x00/255.0 green:0x7A/255.0 blue:0xFF/255.0 alpha:1.0];
+    }
+}
+
+- (void)applyLeftPadding:(GADNativeAdView *)nativeAdView leftPadding:(CGFloat)leftPadding {
+    // Find the background view (first subview of nativeAdView)
+    UIView *backgroundView = nativeAdView.subviews.firstObject;
+    if (backgroundView == nil) return;
+
+    // Update leading constraint of icon view
+    for (NSLayoutConstraint *constraint in backgroundView.constraints) {
+        // Find the leading constraint for the icon view
+        if (constraint.firstAttribute == NSLayoutAttributeLeading &&
+            constraint.firstItem == nativeAdView.iconView) {
+            constraint.constant = leftPadding;
+            break;
+        }
+    }
+}
+
+- (void)applyRightPadding:(GADNativeAdView *)nativeAdView rightPadding:(CGFloat)rightPadding {
+    // Find the background view (first subview of nativeAdView)
+    UIView *backgroundView = nativeAdView.subviews.firstObject;
+    if (backgroundView == nil) return;
+
+    // Update trailing constraint of CTA button
+    for (NSLayoutConstraint *constraint in backgroundView.constraints) {
+        // Find the trailing constraint for the CTA button
+        if (constraint.firstAttribute == NSLayoutAttributeTrailing &&
+            constraint.secondItem == nativeAdView.callToActionView) {
+            constraint.constant = rightPadding;
+            break;
+        }
     }
 }
 

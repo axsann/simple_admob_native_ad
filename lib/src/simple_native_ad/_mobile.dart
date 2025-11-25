@@ -15,6 +15,7 @@ enum AdColorMode {
   dark,
 }
 
+
 class SimpleNativeAd extends StatefulWidget {
   const SimpleNativeAd({
     required this.iosAdUnitId,
@@ -34,6 +35,9 @@ class SimpleNativeAd extends StatefulWidget {
     this.borderBottomColor,
     this.forceColorMode = AdColorMode.auto,
     this.backgroundColor,
+    this.leftPadding,
+    this.rightPadding,
+    this.adChoicesPlacement,
     super.key,
   });
 
@@ -54,6 +58,9 @@ class SimpleNativeAd extends StatefulWidget {
   final Color? borderBottomColor;
   final AdColorMode forceColorMode;
   final Color? backgroundColor;
+  final double? leftPadding;
+  final double? rightPadding;
+  final AdChoicesPlacement? adChoicesPlacement;
 
   @override
   SimpleNativeAdState createState() => SimpleNativeAdState();
@@ -170,8 +177,13 @@ class SimpleNativeAdState extends State<SimpleNativeAd> {
         onPaidEvent: (ad, valueMicros, precision, currencyCode) {},
       ),
       request: const AdRequest(),
+      nativeAdOptions: widget.adChoicesPlacement != null
+          ? NativeAdOptions(adChoicesPlacement: widget.adChoicesPlacement)
+          : null,
       customOptions: {
         'colorMode': widget.forceColorMode.name,
+        if (widget.leftPadding != null) 'leftPadding': widget.leftPadding!,
+        if (widget.rightPadding != null) 'rightPadding': widget.rightPadding!,
       },
     )..load();
   }

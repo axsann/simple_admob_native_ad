@@ -89,7 +89,41 @@ class SimpleNativeAdFactory: NativeAdFactory {
         val colorMode = customOptions?.get("colorMode") as? String ?: "auto"
         applyColorMode(adView, colorMode)
 
+        // Apply left padding if specified
+        val leftPadding = customOptions?.get("leftPadding") as? Double
+        if (leftPadding != null) {
+            applyLeftPadding(adView, leftPadding)
+        }
+
+        // Apply right padding if specified
+        val rightPadding = customOptions?.get("rightPadding") as? Double
+        if (rightPadding != null) {
+            applyRightPadding(adView, rightPadding)
+        }
+
         return adView
+    }
+
+    private fun applyLeftPadding(adView: NativeAdView, leftPadding: Double) {
+        val background = adView.findViewById<View>(R.id.background)
+        val layoutParams = background.layoutParams as? androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
+        if (layoutParams != null) {
+            // Convert dp to pixels
+            val density = context.resources.displayMetrics.density
+            layoutParams.marginStart = (leftPadding * density).toInt()
+            background.layoutParams = layoutParams
+        }
+    }
+
+    private fun applyRightPadding(adView: NativeAdView, rightPadding: Double) {
+        val background = adView.findViewById<View>(R.id.background)
+        val layoutParams = background.layoutParams as? androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
+        if (layoutParams != null) {
+            // Convert dp to pixels
+            val density = context.resources.displayMetrics.density
+            layoutParams.marginEnd = (rightPadding * density).toInt()
+            background.layoutParams = layoutParams
+        }
     }
 
     private fun applyColorMode(adView: NativeAdView, colorMode: String) {
