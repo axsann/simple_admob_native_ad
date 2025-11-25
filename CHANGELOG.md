@@ -1,3 +1,8 @@
+## 1.2.1
+
+* Fix iOS native ad icon left padding
+* Fix Android Ad label rounded corners
+
 ## 1.2.0
 
 * Add `leftPadding` and `rightPadding` parameters for native ad layout customization

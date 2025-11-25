@@ -37,7 +37,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  simple_admob_native_ad: ^1.2.0
+  simple_admob_native_ad: ^1.2.1
   google_mobile_ads: ^6.0.0
 ```
 

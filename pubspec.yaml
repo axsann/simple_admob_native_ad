@@ -1,6 +1,6 @@
 name: simple_admob_native_ad
 description: A simple, compact Flutter plugin for displaying Google AdMob native ads as banners with auto-refresh and lifecycle management.
-version: 1.2.0
+version: 1.2.1
 homepage: https://github.com/axsann/simple_admob_native_ad
 repository: https://github.com/axsann/simple_admob_native_ad
 issue_tracker: https://github.com/axsann/simple_admob_native_ad/issues
