@@ -48,18 +48,18 @@
 
     ((UIImageView *)nativeAdView.iconView).image = nativeAd.icon.image;
 
-    // Adjust icon padding based on screen size
+    // Adjust icon vertical padding based on screen size
     UIView *iconView = nativeAdView.iconView;
     CGFloat screenWidth = UIScreen.mainScreen.bounds.size.width;
-    CGFloat iconPadding = (screenWidth >= 600) ? 12.0 : 8.0; // Larger padding for iPad
+    CGFloat iconVerticalPadding = (screenWidth >= 600) ? 12.0 : 8.0; // Larger padding for iPad
 
     // Update icon view constraints for better spacing on larger screens
+    // Only adjust top/bottom padding, not leading (left padding is controlled separately)
     for (NSLayoutConstraint *constraint in iconView.superview.constraints) {
         if (constraint.firstItem == iconView || constraint.secondItem == iconView) {
             if (constraint.firstAttribute == NSLayoutAttributeTop ||
-                constraint.firstAttribute == NSLayoutAttributeBottom ||
-                constraint.firstAttribute == NSLayoutAttributeLeading) {
-                constraint.constant = iconPadding;
+                constraint.firstAttribute == NSLayoutAttributeBottom) {
+                constraint.constant = iconVerticalPadding;
             }
         }
     }
