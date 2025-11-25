@@ -5,6 +5,7 @@ import android.content.res.Configuration
 import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
@@ -106,7 +107,7 @@ class SimpleNativeAdFactory: NativeAdFactory {
 
     private fun applyLeftPadding(adView: NativeAdView, leftPadding: Double) {
         val background = adView.findViewById<View>(R.id.background)
-        val layoutParams = background.layoutParams as? androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
+        val layoutParams = background.layoutParams as? ViewGroup.MarginLayoutParams
         if (layoutParams != null) {
             // Convert dp to pixels
             val density = context.resources.displayMetrics.density
@@ -117,7 +118,7 @@ class SimpleNativeAdFactory: NativeAdFactory {
 
     private fun applyRightPadding(adView: NativeAdView, rightPadding: Double) {
         val background = adView.findViewById<View>(R.id.background)
-        val layoutParams = background.layoutParams as? androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
+        val layoutParams = background.layoutParams as? ViewGroup.MarginLayoutParams
         if (layoutParams != null) {
             // Convert dp to pixels
             val density = context.resources.displayMetrics.density

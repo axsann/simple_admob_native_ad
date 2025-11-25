@@ -29,6 +29,9 @@ class SimpleNativeAd extends StatefulWidget {
     this.borderBottomColor,
     this.forceColorMode = AdColorMode.auto,
     this.backgroundColor,
+    this.leftPadding,
+    this.rightPadding,
+    this.adChoicesPlacement,
     super.key,
   });
 
@@ -49,6 +52,9 @@ class SimpleNativeAd extends StatefulWidget {
   final Color? borderBottomColor;
   final AdColorMode forceColorMode;
   final Color? backgroundColor;
+  final double? leftPadding;
+  final double? rightPadding;
+  final Object? adChoicesPlacement;
 
   @override
   State<SimpleNativeAd> createState() => _SimpleNativeAdState();

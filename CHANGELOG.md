@@ -1,3 +1,8 @@
+## 1.2.0
+
+* Add `leftPadding` and `rightPadding` parameters for native ad layout customization
+* Add `adChoicesPlacement` parameter to control AdChoices icon position
+
 ## 1.0.1
 
 * Added screenshots to pub.dev listing

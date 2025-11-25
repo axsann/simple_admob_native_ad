@@ -37,7 +37,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  simple_admob_native_ad: ^1.0.0
+  simple_admob_native_ad: ^1.2.0
   google_mobile_ads: ^6.0.0
 ```
 
@@ -231,6 +231,9 @@ testNativeAdvancedAdUnitIdAndroid: 'ca-app-pub-3940256099942544/2247696110'
 | `borderBottomColor` | Color? | No | Theme-based | Color of bottom border |
 | `forceColorMode` | AdColorMode | No | AdColorMode.auto | Force light/dark mode colors (auto, light, or dark) |
 | `backgroundColor` | Color? | No | Theme-based | Background color of ad banner (use Colors.transparent for transparent) |
+| `leftPadding` | double? | No | null | Left padding of the ad content in logical pixels |
+| `rightPadding` | double? | No | null | Right padding of the ad content in logical pixels |
+| `adChoicesPlacement` | AdChoicesPlacement? | No | topRightCorner | Position of the AdChoices icon (from google_mobile_ads package) |
 
 ## Timer Controller
 
@@ -325,6 +328,42 @@ SimpleNativeAd(
   timerController: _timerController,
   // backgroundColor omitted - uses default
 )
+```
+
+### Custom Padding
+
+You can customize the left and right padding of the native ad content:
+
+```dart
+SimpleNativeAd(
+  iosAdUnitId: testNativeAdUnitIdIOS,
+  androidAdUnitId: testNativeAdUnitIdAndroid,
+  timerController: _timerController,
+  leftPadding: 16.0,  // Left padding in logical pixels
+  rightPadding: 24.0, // Right padding in logical pixels
+)
+```
+
+### AdChoices Icon Position
+
+You can control the position of the AdChoices icon using the `adChoicesPlacement` parameter:
+
+```dart
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+
+// Place AdChoices icon in top left corner
+SimpleNativeAd(
+  iosAdUnitId: testNativeAdUnitIdIOS,
+  androidAdUnitId: testNativeAdUnitIdAndroid,
+  timerController: _timerController,
+  adChoicesPlacement: AdChoicesPlacement.topLeftCorner,
+)
+
+// Available positions:
+// - AdChoicesPlacement.topRightCorner (default)
+// - AdChoicesPlacement.topLeftCorner
+// - AdChoicesPlacement.bottomRightCorner
+// - AdChoicesPlacement.bottomLeftCorner
 ```
 
 ### Customizing Ad Layout
