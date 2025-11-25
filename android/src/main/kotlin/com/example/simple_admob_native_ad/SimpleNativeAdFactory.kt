@@ -154,8 +154,10 @@ class SimpleNativeAdFactory: NativeAdFactory {
             secondaryText?.setTextColor(ContextCompat.getColor(context, R.color.ad_banner_gray_text_dark))
 
             // Ad label
-            adLabel?.setBackgroundResource(0)
-            adLabel?.setBackgroundColor(ContextCompat.getColor(context, R.color.ad_banner_ad_label_background_dark))
+            val adLabelDrawableDark = android.graphics.drawable.GradientDrawable()
+            adLabelDrawableDark.setColor(ContextCompat.getColor(context, R.color.ad_banner_ad_label_background_dark))
+            adLabelDrawableDark.cornerRadius = 3f * context.resources.displayMetrics.density // 3dp
+            adLabel?.background = adLabelDrawableDark
             adLabel?.setTextColor(ContextCompat.getColor(context, R.color.ad_banner_ad_label_text_dark))
 
             // Icon - create drawable with dark background
@@ -179,8 +181,10 @@ class SimpleNativeAdFactory: NativeAdFactory {
             secondaryText?.setTextColor(ContextCompat.getColor(context, R.color.ad_banner_gray_text_light))
 
             // Ad label
-            adLabel?.setBackgroundResource(0)
-            adLabel?.setBackgroundColor(ContextCompat.getColor(context, R.color.ad_banner_ad_label_background_light))
+            val adLabelDrawableLight = android.graphics.drawable.GradientDrawable()
+            adLabelDrawableLight.setColor(ContextCompat.getColor(context, R.color.ad_banner_ad_label_background_light))
+            adLabelDrawableLight.cornerRadius = 3f * context.resources.displayMetrics.density // 3dp
+            adLabel?.background = adLabelDrawableLight
             adLabel?.setTextColor(ContextCompat.getColor(context, R.color.ad_banner_ad_label_text_light))
 
             // Icon - create drawable with light background
