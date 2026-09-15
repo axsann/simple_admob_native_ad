@@ -25,7 +25,7 @@ dependencies:
     # the parent directory to use the current plugin's version.
     path: ../
 
-  google_mobile_ads: ^6.0.0
+  google_mobile_ads: ^9.1.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -49,6 +49,12 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+
+  # google_mobile_ads 9.x は Swift Package Manager に対応しているが、この plugin は
+  # CocoaPods のみのため、SPM が有効だと pod install が解決できない。
+  # SPM を無効化して CocoaPods に統一する
+  config:
+    enable-swift-package-manager: false
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

@@ -37,8 +37,8 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  simple_admob_native_ad: ^1.2.1
-  google_mobile_ads: ^6.0.0
+  simple_admob_native_ad: ^2.0.0
+  google_mobile_ads: ^9.1.0
 ```
 
 ## Setup
@@ -62,6 +62,47 @@ dependencies:
 **That's it!** The native ad factory is automatically registered by the plugin on Android—no additional code needed in your app.
 
 ### iOS
+
+> **Important (v2.0.0+)**: This plugin is CocoaPods-only, while `google_mobile_ads` 9.x also
+> ships a Swift Package. Flutter 3.47 enables Swift Package Manager by default, which makes
+> `pod install` fail with:
+>
+> ```
+> A dependency conflict has occurred because simple_admob_native_ad uses CocoaPods
+> while google_mobile_ads uses Swift Package Manager.
+> ```
+>
+> Until this plugin adopts Swift Package Manager, turn SPM off for your app in `pubspec.yaml`:
+>
+> ```yaml
+> flutter:
+>   config:
+>     enable-swift-package-manager: false
+> ```
+>
+> You also need to allow non-modular includes, because `google_mobile_ads` 9.x headers
+> import a private header of `GoogleMobileAds.framework`. Add this to `ios/Podfile`:
+>
+> ```ruby
+> post_install do |installer|
+>   installer.pods_project.targets.each do |target|
+>     flutter_additional_ios_build_settings(target)
+>     target.build_configurations.each do |config|
+>       config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+>     end
+>   end
+> end
+> ```
+>
+> Your app target needs the same flag, because its Swift code imports this plugin and
+> therefore loads the `google_mobile_ads` module. Add it to `ios/Flutter/Debug.xcconfig`
+> and `ios/Flutter/Release.xcconfig` (note: xcconfig comments use `//`, not `#`):
+>
+> ```
+> CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES=YES
+> ```
+>
+> See `example/` for a working setup.
 
 1. **Add AdMob App ID** to `ios/Runner/Info.plist`:
 
@@ -397,9 +438,9 @@ Edit `ios/Classes/NativeAd/SimpleNativeAd.xib` in Xcode Interface Builder to cus
 
 ## Requirements
 
-- Flutter: >= 3.3.0
+- Flutter: >= 3.38.1
 - Dart: >= 3.10.0
-- google_mobile_ads: ^5.2.0
+- google_mobile_ads: ^9.1.0
 
 ## License
 
