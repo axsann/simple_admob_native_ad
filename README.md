@@ -63,25 +63,18 @@ dependencies:
 
 ### iOS
 
-> **Important (v2.0.0+)**: This plugin is CocoaPods-only, while `google_mobile_ads` 9.x also
-> ships a Swift Package. Flutter 3.47 enables Swift Package Manager by default, which makes
-> `pod install` fail with:
+> **Swift Package Manager (v2.1.0+)**: This plugin ships a Swift Package, so it works with
+> Flutter's default SPM build. Nothing to configure.
 >
-> ```
-> A dependency conflict has occurred because simple_admob_native_ad uses CocoaPods
-> while google_mobile_ads uses Swift Package Manager.
-> ```
+> SPM builds need **Flutter 3.47 or newer**: this plugin's Swift package depends on the
+> `google_mobile_ads` Swift package, and only Flutter 3.47+ resolves plugin-to-plugin
+> package paths. On Flutter 3.38–3.46, keep `enable-swift-package-manager: false`
+> (that is the default on those versions) and use the CocoaPods setup below.
 >
-> Until this plugin adopts Swift Package Manager, turn SPM off for your app in `pubspec.yaml`:
->
-> ```yaml
-> flutter:
->   config:
->     enable-swift-package-manager: false
-> ```
->
-> You also need to allow non-modular includes, because `google_mobile_ads` 9.x headers
-> import a private header of `GoogleMobileAds.framework`. Add this to `ios/Podfile`:
+> If your app is still on CocoaPods (`enable-swift-package-manager: false`, e.g. because
+> another plugin has not adopted SPM), you also need to allow non-modular includes: the
+> `google_mobile_ads` 9.x headers import a private header of `GoogleMobileAds.framework`.
+> Add this to `ios/Podfile`:
 >
 > ```ruby
 > post_install do |installer|
@@ -101,8 +94,6 @@ dependencies:
 > ```
 > CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES=YES
 > ```
->
-> See `example/` for a working setup.
 
 1. **Add AdMob App ID** to `ios/Runner/Info.plist`:
 
@@ -423,7 +414,8 @@ Customize colors in `android/src/main/res/values/colors.xml`:
 
 #### iOS
 
-Edit `ios/Classes/NativeAd/SimpleNativeAd.xib` in Xcode Interface Builder to customize the ad layout.
+Edit `ios/simple_admob_native_ad/Sources/simple_admob_native_ad_objc/Resources/SimpleNativeAd.xib`
+in Xcode Interface Builder to customize the ad layout.
 
 ## Platform Support
 
@@ -438,7 +430,7 @@ Edit `ios/Classes/NativeAd/SimpleNativeAd.xib` in Xcode Interface Builder to cus
 
 ## Requirements
 
-- Flutter: >= 3.38.1
+- Flutter: >= 3.38.1 (>= 3.47 to build with Swift Package Manager)
 - Dart: >= 3.10.0
 - google_mobile_ads: ^9.1.0
 

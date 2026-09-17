@@ -2,7 +2,29 @@
 #import <GoogleMobileAds/GoogleMobileAds.h>
 #import <google_mobile_ads/FLTGoogleMobileAdsPlugin.h>
 
+// Swift Package Manager puts the target's resources in their own bundle and force-includes
+// a generated header that defines SWIFTPM_MODULE_BUNDLE. CocoaPods copies them next to the
+// class instead, so fall back to the class bundle when the macro is absent.
+#ifndef SWIFTPM_MODULE_BUNDLE
+    #define SWIFTPM_MODULE_BUNDLE [NSBundle bundleForClass:[self class]]
+#endif
+
+static NSString *const kSimpleNativeAdNibName = @"SimpleNativeAd";
+
 @implementation SimpleNativeAdFactory
+
+/// Returns the bundle that actually carries SimpleNativeAd.nib.
+- (NSBundle *)nibBundle {
+    NSBundle *moduleBundle = SWIFTPM_MODULE_BUNDLE;
+    if ([moduleBundle URLForResource:kSimpleNativeAdNibName withExtension:@"nib"]) {
+        return moduleBundle;
+    }
+    NSBundle *classBundle = [NSBundle bundleForClass:[self class]];
+    if ([classBundle URLForResource:kSimpleNativeAdNibName withExtension:@"nib"]) {
+        return classBundle;
+    }
+    return [NSBundle mainBundle];
+}
 
 - (GADNativeAdView *)createNativeAd:(GADNativeAd *)nativeAd
                       customOptions:(NSDictionary *)customOptions {
@@ -12,8 +34,8 @@
     // https://github.com/googleads/googleads-mobile-ios-examples/blob/f52b944ddf1f33a1014aff3bd8dd0f830c5391db/Swift/advanced/SwiftUIDemo/SwiftUIDemo/Native/NativeAdView.xib#L123
 
     // Create and place ad in view hierarchy.
-    NSBundle *bundle = [NSBundle bundleForClass:[self class]];
-    GADNativeAdView *nativeAdView = [bundle loadNibNamed:@"SimpleNativeAd"
+    NSBundle *bundle = [self nibBundle];
+    GADNativeAdView *nativeAdView = [bundle loadNibNamed:kSimpleNativeAdNibName
                                                     owner:nil
                                                   options:nil].firstObject;
 

@@ -2,6 +2,13 @@ import Flutter
 import UIKit
 import google_mobile_ads
 
+// Swift Package Manager cannot mix Swift and Objective-C in one target, so
+// SimpleNativeAdFactory lives in a separate module there. Under CocoaPods it is
+// part of this module already and there is nothing to import.
+#if canImport(simple_admob_native_ad_objc)
+  import simple_admob_native_ad_objc
+#endif
+
 public class SimpleAdmobNativeAdPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "simple_admob_native_ad", binaryMessenger: registrar.messenger())
