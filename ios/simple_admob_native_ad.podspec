@@ -13,8 +13,11 @@ A simple, compact Flutter plugin for displaying Google AdMob native ads as banne
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Your Company' => 'email@example.com' }
   s.source           = { :path => '.' }
-  s.source_files = 'Classes/**/*.{h,m,swift}'
-  s.resources = 'Classes/**/*.xib'
+  # Sources live under simple_admob_native_ad/Sources so the same tree can be built by
+  # Swift Package Manager (Package.swift requires every source inside the package dir).
+  s.source_files = 'simple_admob_native_ad/Sources/**/*.{h,m,swift}'
+  s.public_header_files = 'simple_admob_native_ad/Sources/**/include/**/*.h'
+  s.resources = 'simple_admob_native_ad/Sources/**/*.xib'
   s.dependency 'Flutter'
   s.dependency 'google_mobile_ads'
   s.platform = :ios, '13.0'

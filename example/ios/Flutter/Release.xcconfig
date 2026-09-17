@@ -1,6 +1,2 @@
 #include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
 #include "Generated.xcconfig"
-
-// google_mobile_ads 9.x headers import a private header of GoogleMobileAds.framework,
-// so the app target must allow non-modular includes when using CocoaPods.
-CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES=YES
