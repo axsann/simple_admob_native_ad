@@ -39,6 +39,16 @@ static NSString *const kSimpleNativeAdNibName = @"SimpleNativeAd";
                                                     owner:nil
                                                   options:nil].firstObject;
 
+    // The ad sits in a fixed-size slot that the Flutter side lays out, so it cannot grow with
+    // the user's text size. The labels use fixed fonts, but the call-to-action button is built
+    // with UIButtonConfiguration, which follows Dynamic Type and ignores titleLabel.font. At the
+    // largest accessibility sizes its title overflowed the slot and was drawn on top of other
+    // Flutter screens. Cap the text size for the whole ad and clip anything that still overflows.
+    if (@available(iOS 15.0, *)) {
+        nativeAdView.maximumContentSizeCategory = UIContentSizeCategoryLarge;
+    }
+    nativeAdView.clipsToBounds = YES;
+
     // Get color mode from customOptions
     NSString *colorMode = customOptions[@"colorMode"] ?: @"auto";
     BOOL isDarkMode = [self isDarkMode:colorMode];
