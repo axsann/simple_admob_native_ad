@@ -1,3 +1,14 @@
+## 2.1.1
+
+* **Ads no longer break at large text sizes.** The ad sits in a fixed-size slot laid out by
+  Flutter, so its text cannot grow with the user's text size setting.
+  * iOS: the call-to-action button is built with `UIButtonConfiguration`, which follows
+    Dynamic Type and ignores `titleLabel.font`. At the largest accessibility sizes its title
+    overflowed the slot and was drawn on top of the app's other Flutter screens. The ad view
+    now caps Dynamic Type (`maximumContentSizeCategory`, iOS 15+) and clips to its bounds.
+  * Android: ad text sizes are now in `dp` instead of `sp`, so the font size setting no longer
+    pushes the text out of the fixed-height banner.
+
 ## 2.1.0
 
 * **Swift Package Manager support on iOS.** The plugin now ships

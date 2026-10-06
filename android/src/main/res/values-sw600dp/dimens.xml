@@ -12,7 +12,7 @@
     <dimen name="ad_banner_cta_button_min_width">140dp</dimen>
 
     <!-- Larger text sizes for tablets (vs phone: 12sp/13sp/15sp) -->
-    <dimen name="ad_banner_text_size_small">14sp</dimen>
-    <dimen name="ad_banner_text_size_large">16sp</dimen>
-    <dimen name="ad_banner_text_size_cta">17sp</dimen>
+    <dimen name="ad_banner_text_size_small">14dp</dimen>
+    <dimen name="ad_banner_text_size_large">16dp</dimen>
+    <dimen name="ad_banner_text_size_cta">17dp</dimen>
 </resources>
