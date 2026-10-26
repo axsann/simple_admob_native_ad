@@ -30,9 +30,8 @@ migrate_working_dir/
 /build/
 /coverage/
 
-# FVM Version Cache
-.fvm/
-.fvmrc
+# mise のローカル設定（Flutter の版。fvm の .fvmrc と同じく git に入れない）
+mise.local.toml
 
 # Claude Code
 .claude/
