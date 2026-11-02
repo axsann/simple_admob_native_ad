@@ -1,3 +1,18 @@
+## 2.2.0
+
+* **Minimum Flutter is now 3.44 (Dart 3.12)**, up from 3.38.1. Apps on Flutter 3.38–3.43
+  can stay on 2.1.1.
+* **Android: migrated to built-in Kotlin.** The plugin no longer applies the Kotlin Gradle
+  plugin (`kotlin-android`). Apps on AGP 9 no longer get Flutter's warning that this plugin
+  applies KGP and will fail to build in future Flutter versions, and they can turn on
+  `android.builtInKotlin=true` (Flutter 3.47+). Apps on AGP 8 need no changes: since
+  Flutter 3.44 the Flutter Gradle plugin applies `kotlin-android` to plugins that do not,
+  which is why the minimum Flutter went up.
+* Require `google_mobile_ads: ^9.2.0` (was `^9.1.0`), which uses Google Mobile Ads SDK
+  25.5.0 on Android and 13.11.0 on iOS.
+* No Dart API changes, and no iOS changes.
+* Example app: Gradle 9.3.1, AGP 9.1.0 and Kotlin 2.4.0 with built-in Kotlin enabled.
+
 ## 2.1.1
 
 * **Ads no longer break at large text sizes.** The ad sits in a fixed-size slot laid out by
