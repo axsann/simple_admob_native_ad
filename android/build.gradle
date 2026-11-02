@@ -2,14 +2,14 @@ group = "com.example.simple_admob_native_ad"
 version = "1.0-SNAPSHOT"
 
 buildscript {
-    ext.kotlin_version = "2.2.20"
+    ext.kotlin_version = "2.4.0"
     repositories {
         google()
         mavenCentral()
     }
 
     dependencies {
-        classpath("com.android.tools.build:gradle:8.11.1")
+        classpath("com.android.tools.build:gradle:9.1.0")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
     }
 }
@@ -21,8 +21,9 @@ allprojects {
     }
 }
 
+// Kotlin is not applied here (built-in Kotlin, Flutter 3.44+). With AGP 9 built-in Kotlin
+// compiles the Kotlin sources; otherwise the Flutter Gradle plugin applies kotlin-android.
 apply plugin: "com.android.library"
-apply plugin: "kotlin-android"
 
 android {
     namespace = "com.example.simple_admob_native_ad"
@@ -32,10 +33,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17
     }
 
     sourceSets {
@@ -48,8 +45,10 @@ android {
     }
 
     dependencies {
-        testImplementation("org.jetbrains.kotlin:kotlin-test")
-        testImplementation("org.mockito:mockito-core:5.0.0")
+        // Name the JUnit 5 flavour: built-in Kotlin does not pick it from useJUnitPlatform()
+        // the way the kotlin-android plugin did, and kotlin.test.Test is then unresolved.
+        testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+        testImplementation("org.mockito:mockito-core:5.24.0")
     }
 
     testOptions {
@@ -62,5 +61,11 @@ android {
                showStandardStreams = true
             }
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
 }

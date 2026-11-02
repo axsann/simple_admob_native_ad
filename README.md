@@ -37,8 +37,8 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  simple_admob_native_ad: ^2.0.0
-  google_mobile_ads: ^9.1.0
+  simple_admob_native_ad: ^2.2.0
+  google_mobile_ads: ^9.2.0
 ```
 
 ## Setup
@@ -68,7 +68,7 @@ dependencies:
 >
 > SPM builds need **Flutter 3.47 or newer**: this plugin's Swift package depends on the
 > `google_mobile_ads` Swift package, and only Flutter 3.47+ resolves plugin-to-plugin
-> package paths. On Flutter 3.38–3.46, keep `enable-swift-package-manager: false`
+> package paths. On Flutter 3.44–3.46, keep `enable-swift-package-manager: false`
 > (that is the default on those versions) and use the CocoaPods setup below.
 >
 > If your app is still on CocoaPods (`enable-swift-package-manager: false`, e.g. because
@@ -430,9 +430,9 @@ in Xcode Interface Builder to customize the ad layout.
 
 ## Requirements
 
-- Flutter: >= 3.38.1 (>= 3.47 to build with Swift Package Manager)
-- Dart: >= 3.10.0
-- google_mobile_ads: ^9.1.0
+- Flutter: >= 3.44.0 (>= 3.47 to build with Swift Package Manager)
+- Dart: >= 3.12.0
+- google_mobile_ads: ^9.2.0
 
 ## License
 
