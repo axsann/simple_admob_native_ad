@@ -1,3 +1,16 @@
+## 2.3.0
+
+* **Style options to match the app's look.** New optional parameters: `adLabel` (the
+  attribution badge's text, for your app's language), `primaryTextColor`,
+  `secondaryTextColor`, `ctaBackgroundColor`, `ctaTextColor`, `ctaBorderColor` and
+  `borderRadius`. Left out, the ad looks as before. Changing any of them reloads the ad.
+  * iOS: the call-to-action button is built with `UIButtonConfiguration`, so its colors are
+    set on the configuration too, and in this styled mode its title gets the intended 15pt
+    (iPad 17pt) instead of the configuration's 17pt.
+  * The badge grows to fit a longer label (at least the "Ad" badge's width).
+* **The ad takes the width it's given** (it was always the screen's), so it can sit inset,
+  in a card for example. Full-width layouts look the same.
+
 ## 2.2.0
 
 * **Minimum Flutter is now 3.44 (Dart 3.12)**, up from 3.38.1. Apps on Flutter 3.38–3.43
