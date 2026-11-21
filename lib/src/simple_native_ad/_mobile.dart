@@ -9,12 +9,13 @@ import '../simple_native_ad_timer_controller.dart';
 enum AdColorMode {
   /// Automatically follows system theme (default)
   auto,
+
   /// Force light mode colors
   light,
+
   /// Force dark mode colors
   dark,
 }
-
 
 class SimpleNativeAd extends StatefulWidget {
   const SimpleNativeAd({
@@ -38,6 +39,13 @@ class SimpleNativeAd extends StatefulWidget {
     this.leftPadding,
     this.rightPadding,
     this.adChoicesPlacement,
+    this.adLabel,
+    this.primaryTextColor,
+    this.secondaryTextColor,
+    this.ctaBackgroundColor,
+    this.ctaTextColor,
+    this.ctaBorderColor,
+    this.borderRadius = 0,
     super.key,
   });
 
@@ -61,6 +69,30 @@ class SimpleNativeAd extends StatefulWidget {
   final double? leftPadding;
   final double? rightPadding;
   final AdChoicesPlacement? adChoicesPlacement;
+
+  /// The text of the ad attribution badge ("Ad" when null). Give it in your
+  /// app's language (for example "広告"): AdMob accepts a translation.
+  final String? adLabel;
+
+  /// The headline's color, in place of [forceColorMode]'s.
+  final Color? primaryTextColor;
+
+  /// The body's color, in place of [forceColorMode]'s.
+  final Color? secondaryTextColor;
+
+  /// The call-to-action button's fill, in place of [forceColorMode]'s blue.
+  final Color? ctaBackgroundColor;
+
+  /// The call-to-action button's text color, in place of [forceColorMode]'s
+  /// white.
+  final Color? ctaTextColor;
+
+  /// A hairline around the call-to-action button (none when null).
+  final Color? ctaBorderColor;
+
+  /// Rounds the corners of the ad's background ([backgroundColor]). Not drawn
+  /// with [showBorderTop] or [showBorderBottom], which stay square.
+  final double borderRadius;
 
   @override
   SimpleNativeAdState createState() => SimpleNativeAdState();
@@ -105,9 +137,10 @@ class SimpleNativeAdState extends State<SimpleNativeAd> {
   void didUpdateWidget(SimpleNativeAd oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // Reload ad if forceColorMode changes
+    // Reload ad if forceColorMode or the style changes
     // This ensures the new color scheme is applied
-    if (oldWidget.forceColorMode != widget.forceColorMode) {
+    if (oldWidget.forceColorMode != widget.forceColorMode ||
+        !mapEquals(_styleOptions(oldWidget), _styleOptions(widget))) {
       // Dispose old ad
       _nativeAd?.dispose();
       _nativeAdIsLoaded = false;
@@ -184,9 +217,25 @@ class SimpleNativeAdState extends State<SimpleNativeAd> {
         'colorMode': widget.forceColorMode.name,
         if (widget.leftPadding != null) 'leftPadding': widget.leftPadding!,
         if (widget.rightPadding != null) 'rightPadding': widget.rightPadding!,
+        ..._styleOptions(widget),
       },
     )..load();
   }
+
+  /// The label and colors the native side draws with (colors as 0xAARRGGBB).
+  static Map<String, Object> _styleOptions(SimpleNativeAd widget) => {
+    if (widget.adLabel != null) 'adLabel': widget.adLabel!,
+    if (widget.primaryTextColor != null)
+      'primaryTextColor': widget.primaryTextColor!.toARGB32(),
+    if (widget.secondaryTextColor != null)
+      'secondaryTextColor': widget.secondaryTextColor!.toARGB32(),
+    if (widget.ctaBackgroundColor != null)
+      'ctaBackgroundColor': widget.ctaBackgroundColor!.toARGB32(),
+    if (widget.ctaTextColor != null)
+      'ctaTextColor': widget.ctaTextColor!.toARGB32(),
+    if (widget.ctaBorderColor != null)
+      'ctaBorderColor': widget.ctaBorderColor!.toARGB32(),
+  };
 
   void startTimer() {
     if (_timer == null || !_timer!.isActive) {
@@ -249,32 +298,45 @@ class SimpleNativeAdState extends State<SimpleNativeAd> {
       return AnimatedOpacity(
         opacity: _showAdWithOpacity ? 1.0 : 0.0,
         duration: widget.animationDuration,
-        child: Container(
-          height: adHeight,
-          width: MediaQuery.of(context).size.width,
-          decoration: BoxDecoration(
-            color: defaultBackgroundColor,
-            border: hasBorder
-                ? Border(
-                    top: widget.showBorderTop
-                        ? BorderSide(
-                            color: widget.borderTopColor ?? defaultBorderColor,
-                            width: widget.borderTopWidth,
-                          )
-                        : BorderSide.none,
-                    bottom: widget.showBorderBottom
-                        ? BorderSide(
-                            color:
-                                widget.borderBottomColor ?? defaultBorderColor,
-                            width: widget.borderBottomWidth,
-                          )
-                        : BorderSide.none,
-                  )
-                : null,
-          ),
-          child: AdWidget(
-            key: ValueKey('${_nativeAd.hashCode}_${widget.forceColorMode.name}'),
-            ad: _nativeAd!,
+        child: LayoutBuilder(
+          // As wide as the slot it's given (inset in a card, say), else the
+          // screen.
+          builder: (context, constraints) => Container(
+            height: adHeight,
+            width: constraints.hasBoundedWidth
+                ? constraints.maxWidth
+                : MediaQuery.of(context).size.width,
+            decoration: BoxDecoration(
+              color: defaultBackgroundColor,
+              borderRadius: !hasBorder && widget.borderRadius > 0
+                  ? BorderRadius.circular(widget.borderRadius)
+                  : null,
+              border: hasBorder
+                  ? Border(
+                      top: widget.showBorderTop
+                          ? BorderSide(
+                              color:
+                                  widget.borderTopColor ?? defaultBorderColor,
+                              width: widget.borderTopWidth,
+                            )
+                          : BorderSide.none,
+                      bottom: widget.showBorderBottom
+                          ? BorderSide(
+                              color:
+                                  widget.borderBottomColor ??
+                                  defaultBorderColor,
+                              width: widget.borderBottomWidth,
+                            )
+                          : BorderSide.none,
+                    )
+                  : null,
+            ),
+            child: AdWidget(
+              key: ValueKey(
+                '${_nativeAd.hashCode}_${widget.forceColorMode.name}',
+              ),
+              ad: _nativeAd!,
+            ),
           ),
         ),
       );

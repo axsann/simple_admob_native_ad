@@ -102,7 +102,53 @@ class SimpleNativeAdFactory: NativeAdFactory {
             applyRightPadding(adView, rightPadding)
         }
 
+        // The app's label and colors, over the color mode's
+        applyStyle(adView, customOptions)
+
         return adView
+    }
+
+    /** A color from Dart (0xAARRGGBB, which may arrive as a Long). */
+    private fun colorOption(customOptions: Map<String, Any>?, key: String): Int? =
+        (customOptions?.get(key) as? Number)?.toLong()?.toInt()
+
+    private fun applyStyle(adView: NativeAdView, customOptions: Map<String, Any>?) {
+        val density = context.resources.displayMetrics.density
+
+        // The attribution badge's text, as wide as it needs (at least the "Ad" badge's 23dp)
+        val adLabelText = customOptions?.get("adLabel") as? String
+        if (adLabelText != null) {
+            adView.findViewById<TextView>(R.id.ad_notification_view)?.let { label ->
+                label.text = adLabelText
+                label.layoutParams = label.layoutParams.apply {
+                    width = ViewGroup.LayoutParams.WRAP_CONTENT
+                }
+                label.minWidth = (23 * density).toInt()
+                val padding = (4 * density).toInt()
+                label.setPadding(padding, 0, padding, 0)
+            }
+        }
+
+        colorOption(customOptions, "primaryTextColor")?.let {
+            adView.findViewById<TextView>(R.id.primary)?.setTextColor(it)
+        }
+        colorOption(customOptions, "secondaryTextColor")?.let {
+            adView.findViewById<TextView>(R.id.secondary)?.setTextColor(it)
+        }
+
+        val ctaBackground = colorOption(customOptions, "ctaBackgroundColor")
+        val ctaText = colorOption(customOptions, "ctaTextColor")
+        val ctaBorder = colorOption(customOptions, "ctaBorderColor")
+        val ctaButton = adView.findViewById<Button>(R.id.cta) ?: return
+        if (ctaText != null) ctaButton.setTextColor(ctaText)
+        if (ctaBackground != null || ctaBorder != null) {
+            val drawable = (ctaButton.background as? android.graphics.drawable.GradientDrawable)
+                ?.mutate() as? android.graphics.drawable.GradientDrawable
+                ?: android.graphics.drawable.GradientDrawable().apply { cornerRadius = 100f }
+            if (ctaBackground != null) drawable.setColor(ctaBackground)
+            if (ctaBorder != null) drawable.setStroke(maxOf(1, (0.5f * density).toInt()), ctaBorder)
+            ctaButton.background = drawable
+        }
     }
 
     private fun applyLeftPadding(adView: NativeAdView, leftPadding: Double) {

@@ -37,7 +37,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  simple_admob_native_ad: ^2.2.0
+  simple_admob_native_ad: ^2.3.0
   google_mobile_ads: ^9.2.0
 ```
 
@@ -266,6 +266,13 @@ testNativeAdvancedAdUnitIdAndroid: 'ca-app-pub-3940256099942544/2247696110'
 | `leftPadding` | double? | No | null | Left padding of the ad content in logical pixels |
 | `rightPadding` | double? | No | null | Right padding of the ad content in logical pixels |
 | `adChoicesPlacement` | AdChoicesPlacement? | No | topRightCorner | Position of the AdChoices icon (from google_mobile_ads package) |
+| `adLabel` | String? | No | "Ad" | Text of the ad attribution badge (give it in your app's language, e.g. "広告") |
+| `primaryTextColor` | Color? | No | Mode-based | Headline color |
+| `secondaryTextColor` | Color? | No | Mode-based | Body color |
+| `ctaBackgroundColor` | Color? | No | Mode-based (blue) | Call-to-action button fill |
+| `ctaTextColor` | Color? | No | Mode-based (white) | Call-to-action button text color |
+| `ctaBorderColor` | Color? | No | null | Hairline around the call-to-action button |
+| `borderRadius` | double | No | 0 | Rounded corners of the background (not with the top or bottom border) |
 
 ## Timer Controller
 
@@ -397,6 +404,36 @@ SimpleNativeAd(
 // - AdChoicesPlacement.bottomRightCorner
 // - AdChoicesPlacement.bottomLeftCorner
 ```
+
+### Matching Your App's Look
+
+Fit the ad to your app instead of the default blue button: a rounded card, your text
+colors, a quiet button, and the badge in your app's language. The ad takes the width it's
+given, so it can sit inset in a card. AdMob allows these changes as long as the badge and
+the AdChoices icon stay visible.
+
+```dart
+Padding(
+  padding: const EdgeInsets.symmetric(horizontal: 16),
+  child: SimpleNativeAd(
+    iosAdUnitId: testNativeAdUnitIdIOS,
+    androidAdUnitId: testNativeAdUnitIdAndroid,
+    timerController: _timerController,
+    backgroundColor: const Color(0xFFF2F2F7),
+    borderRadius: 16,
+    leftPadding: 12,
+    rightPadding: 12,
+    adLabel: '広告',
+    primaryTextColor: const Color(0xFF1E1B1B),
+    secondaryTextColor: const Color(0xFF6B6360),
+    ctaBackgroundColor: Colors.white,
+    ctaTextColor: const Color(0xFF1E1B1B),
+    ctaBorderColor: const Color(0x14000000),
+  ),
+)
+```
+
+When any of these change, the ad reloads with them, as with `forceColorMode`.
 
 ### Customizing Ad Layout
 

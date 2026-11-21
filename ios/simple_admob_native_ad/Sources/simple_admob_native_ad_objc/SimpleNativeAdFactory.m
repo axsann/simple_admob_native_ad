@@ -135,6 +135,9 @@ static NSString *const kSimpleNativeAdNibName = @"SimpleNativeAd";
     ctaButton.backgroundColor = UIColor.systemBlueColor;
     ctaButton.layer.cornerRadius = ctaButton.bounds.size.height / 2.0; // Capsule shape
 
+    // The app's label and colors, over the color mode's
+    [self applyStyle:nativeAdView customOptions:customOptions];
+
     // In order for the SDK to process touch events properly, user interaction should be disabled.
     nativeAdView.callToActionView.userInteractionEnabled = NO;
 
@@ -168,29 +171,7 @@ static NSString *const kSimpleNativeAdNibName = @"SimpleNativeAd";
     UIImageView *iconView = (UIImageView *)nativeAdView.iconView;
     UIButton *ctaButton = (UIButton *)nativeAdView.callToActionView;
 
-    // Find Ad label (it's in a stack view)
-    UILabel *adLabel = nil;
-    for (UIView *subview in nativeAdView.subviews) {
-        for (UIView *stackSubview in subview.subviews) {
-            if ([stackSubview isKindOfClass:[UIStackView class]]) {
-                UIStackView *stackView = (UIStackView *)stackSubview;
-                for (UIView *stackItem in stackView.arrangedSubviews) {
-                    if ([stackItem isKindOfClass:[UIStackView class]]) {
-                        UIStackView *innerStack = (UIStackView *)stackItem;
-                        for (UIView *innerItem in innerStack.arrangedSubviews) {
-                            if ([innerItem isKindOfClass:[UILabel class]]) {
-                                UILabel *label = (UILabel *)innerItem;
-                                if ([label.text isEqualToString:@"Ad"]) {
-                                    adLabel = label;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+    UILabel *adLabel = [self adLabelIn:nativeAdView];
 
     if (isDarkMode) {
         // Dark mode colors
@@ -220,6 +201,84 @@ static NSString *const kSimpleNativeAdNibName = @"SimpleNativeAd";
 
         [ctaButton setTitleColor:UIColor.whiteColor forState:UIControlStateNormal];
         ctaButton.backgroundColor = [UIColor colorWithRed:0x00/255.0 green:0x7A/255.0 blue:0xFF/255.0 alpha:1.0];
+    }
+}
+
+/// The "Ad" attribution badge: the first label of the row under the headline.
+- (UILabel *)adLabelIn:(GADNativeAdView *)nativeAdView {
+    UIView *bodyView = nativeAdView.bodyView;
+    if ([bodyView.superview isKindOfClass:[UIStackView class]]) {
+        for (UIView *item in ((UIStackView *)bodyView.superview).arrangedSubviews) {
+            if (item != bodyView && [item isKindOfClass:[UILabel class]]) {
+                return (UILabel *)item;
+            }
+        }
+    }
+    return nil;
+}
+
+/// A color from Dart (0xAARRGGBB), or nil.
+- (UIColor *)colorOption:(NSDictionary *)customOptions key:(NSString *)key {
+    NSNumber *value = customOptions[key];
+    if (![value isKindOfClass:[NSNumber class]]) return nil;
+    uint32_t argb = (uint32_t)[value unsignedLongLongValue];
+    return [UIColor colorWithRed:((argb >> 16) & 0xFF) / 255.0
+                           green:((argb >> 8) & 0xFF) / 255.0
+                            blue:(argb & 0xFF) / 255.0
+                           alpha:((argb >> 24) & 0xFF) / 255.0];
+}
+
+- (void)applyStyle:(GADNativeAdView *)nativeAdView customOptions:(NSDictionary *)customOptions {
+    // The attribution badge's text, as wide as it needs (at least the "Ad" badge's 23pt)
+    NSString *adLabelText = customOptions[@"adLabel"];
+    UILabel *adLabel = [self adLabelIn:nativeAdView];
+    if ([adLabelText isKindOfClass:[NSString class]] && adLabel != nil) {
+        adLabel.text = adLabelText;
+        CGFloat width = ceil([adLabelText sizeWithAttributes:@{NSFontAttributeName: adLabel.font}].width) + 8.0;
+        for (NSLayoutConstraint *constraint in adLabel.constraints) {
+            if (constraint.firstItem == adLabel && constraint.firstAttribute == NSLayoutAttributeWidth) {
+                constraint.constant = MAX(23.0, width);
+            }
+        }
+    }
+
+    UIColor *primary = [self colorOption:customOptions key:@"primaryTextColor"];
+    if (primary) ((UILabel *)nativeAdView.headlineView).textColor = primary;
+    UIColor *secondary = [self colorOption:customOptions key:@"secondaryTextColor"];
+    if (secondary) ((UILabel *)nativeAdView.bodyView).textColor = secondary;
+
+    UIButton *ctaButton = (UIButton *)nativeAdView.callToActionView;
+    UIColor *ctaBackground = [self colorOption:customOptions key:@"ctaBackgroundColor"];
+    UIColor *ctaText = [self colorOption:customOptions key:@"ctaTextColor"];
+    UIColor *ctaBorder = [self colorOption:customOptions key:@"ctaBorderColor"];
+    if (ctaBackground) ctaButton.backgroundColor = ctaBackground;
+    if (ctaText) [ctaButton setTitleColor:ctaText forState:UIControlStateNormal];
+    // The button is built with UIButtonConfiguration (gray), whose own fill and title color
+    // draw over the view's: set them there too.
+    if (@available(iOS 15.0, *)) {
+        UIButtonConfiguration *configuration = ctaButton.configuration;
+        if (configuration != nil && (ctaBackground || ctaText)) {
+            if (ctaBackground) configuration.background.backgroundColor = ctaBackground;
+            if (ctaText) configuration.baseForegroundColor = ctaText;
+            // Keep the ad's call to action (the copy may still hold the layout's "Install")
+            NSString *title = [ctaButton titleForState:UIControlStateNormal];
+            if (title) configuration.title = title;
+            // The configuration ignores titleLabel.font and draws 17pt: give it the 15pt
+            // (iPad 17pt) set above, as Android's.
+            UIFont *font = [UIFont systemFontOfSize:(UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad ? 17.0 : 15.0)
+                                             weight:UIFontWeightRegular];
+            configuration.titleTextAttributesTransformer =
+                ^NSDictionary<NSAttributedStringKey, id> *(NSDictionary<NSAttributedStringKey, id> *incoming) {
+                    NSMutableDictionary<NSAttributedStringKey, id> *outgoing = [incoming mutableCopy];
+                    outgoing[NSFontAttributeName] = font;
+                    return outgoing;
+                };
+            ctaButton.configuration = configuration;
+        }
+    }
+    if (ctaBorder) {
+        ctaButton.layer.borderColor = ctaBorder.CGColor;
+        ctaButton.layer.borderWidth = 0.5;
     }
 }
 
