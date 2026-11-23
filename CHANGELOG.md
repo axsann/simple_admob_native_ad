@@ -1,3 +1,10 @@
+## 2.5.1
+
+* Docs only: the `padding` to keep the AdChoices icon inside a rounded corner is about 6 for a
+  radius of 16, not 4. The icon is a 15-point square with corners rounded by about 3; with 4 it
+  stays inside but its corner touches the curve (0.2 points, measured on an iPhone), and with 6
+  it keeps about 3 points clear. The README's stacked example uses 6 (and a height of 134).
+
 ## 2.5.0
 
 * **New `layout: AdLayout.stacked`**: the icon and the text beside it, and the call-to-action
