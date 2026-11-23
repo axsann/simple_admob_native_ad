@@ -1,3 +1,19 @@
+## 2.5.0
+
+* **New `layout: AdLayout.stacked`**: the icon and the text beside it, and the call-to-action
+  button on its own line under them, as wide as the ad (122 points high on a phone, 164 on a
+  tablet; the icon grows or shrinks with the height). The default, `AdLayout.row`, is the
+  banner as before. Changing the layout reloads the ad.
+  * iOS: built in code (the row stays the `.xib`); the button is a capsule (40pt, iPad 48pt)
+    with a semibold title. Android: `simple_native_ad_stacked.xml`, with the row's view ids.
+  * The text keeps 22 points clear of the right edge for the AdChoices icon in the top-right
+    corner.
+* **New `padding`** (default `EdgeInsets.zero`): space between the background's edges and the
+  ad's own view. The AdChoices icon sits in the very corner of the ad's view, so with a
+  `borderRadius` it stuck out of the rounded corner; an inset of about a quarter of the radius
+  (4 for 16) keeps it inside the curve. The background still fills `height`.
+* The recommended height (when `height` is left out) includes the `padding`.
+
 ## 2.4.0
 
 * **A refresh no longer blinks.** The ad on show stays until the next one has loaded, then

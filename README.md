@@ -37,7 +37,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  simple_admob_native_ad: ^2.3.0
+  simple_admob_native_ad: ^2.5.0
   google_mobile_ads: ^9.2.0
 ```
 
@@ -250,7 +250,9 @@ testNativeAdvancedAdUnitIdAndroid: 'ca-app-pub-3940256099942544/2247696110'
 | `androidAdUnitId` | String | Yes | - | AdMob ad unit ID for Android |
 | `timerController` | SimpleNativeAdTimerController | Yes | - | Controller to manage ad refresh timer |
 | `placeholder` | Widget? | No | null | Widget to display while ad is loading |
-| `height` | double? | No | Auto (90.0 for iPad, 64.0 for iPhone) | Height of the ad banner in pixels |
+| `height` | double? | No | Auto (row: 90.0 for iPad, 64.0 for iPhone; stacked: 164.0, 122.0; plus `padding`) | Height of the ad banner in pixels, `padding` included |
+| `layout` | AdLayout | No | AdLayout.row | `row`: the button at the end of the row (a banner). `stacked`: the button on its own line under the icon and the text, as wide as the ad |
+| `padding` | EdgeInsetsGeometry | No | EdgeInsets.zero | Space between the background's edges and the ad's view. With a `borderRadius`, about a quarter of the radius keeps the AdChoices icon (in the ad's corner) inside the rounded corner |
 | `refreshInterval` | Duration | No | 5 minutes | How often to reload the ad |
 | `pauseRefresh` | bool | No | false | Holds the refresh while true (the ad on show stays). Set it while the ad can't be seen |
 | `animationDuration` | Duration | No | 300 milliseconds | Duration of the fades: placeholder to ad, and one ad to the next |
@@ -323,6 +325,27 @@ SimpleNativeAd(
     color: Colors.grey[200],
     child: const Center(child: Text('Loading ad...')),
   ),
+)
+```
+
+### Stacked Layout in a Rounded Card
+
+The button on its own line under the icon and the text, in a card with rounded corners. The
+`padding` insets the ad's view so the AdChoices icon (in its top-right corner) stays inside the
+rounded corner; `leftPadding` and `rightPadding` are then measured from the ad's view.
+
+```dart
+SimpleNativeAd(
+  iosAdUnitId: 'ca-app-pub-3940256099942544/3986624511',
+  androidAdUnitId: 'ca-app-pub-3940256099942544/2247696110',
+  timerController: _timerController,
+  layout: AdLayout.stacked,
+  height: 130, // 122 for the ad, and the padding
+  padding: const EdgeInsets.all(4),
+  leftPadding: 8,
+  rightPadding: 8,
+  borderRadius: 16,
+  backgroundColor: const Color(0xFFF2F2F7),
 )
 ```
 

@@ -14,6 +14,9 @@ import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdView
 import io.flutter.plugins.googlemobileads.NativeAdFactory
 
+/** The stacked layout's room at the text's end for the AdChoices icon, from the ad's right edge. */
+private const val STACKED_ADCHOICES_ROOM_DP = 22
+
 class SimpleNativeAdFactory: NativeAdFactory {
     private var layoutInflater: LayoutInflater
     private var context: Context
@@ -24,7 +27,10 @@ class SimpleNativeAdFactory: NativeAdFactory {
     }
 
     override fun createNativeAd(nativeAd: NativeAd?, customOptions: MutableMap<String, Any>?): NativeAdView {
-        val adView = layoutInflater.inflate(R.layout.simple_native_ad, null) as NativeAdView
+        // The row's layout, or the stacked one (the button on its own line); both have the same ids
+        val stacked = customOptions?.get("layout") == "stacked"
+        val layout = if (stacked) R.layout.simple_native_ad_stacked else R.layout.simple_native_ad
+        val adView = layoutInflater.inflate(layout, null) as NativeAdView
 
         // Set other ad assets.
         adView.headlineView = adView.findViewById(R.id.primary)
@@ -102,10 +108,29 @@ class SimpleNativeAdFactory: NativeAdFactory {
             applyRightPadding(adView, rightPadding)
         }
 
+        // The stacked layout's text keeps clear of the AdChoices icon in the top-right corner
+        if (stacked) {
+            keepClearOfAdChoices(adView)
+        }
+
         // The app's label and colors, over the color mode's
         applyStyle(adView, customOptions)
 
         return adView
+    }
+
+    /**
+     * The stacked layout's text ends 22dp from the ad's right edge (the AdChoices icon sits in its
+     * top-right corner), however far in the right padding puts the rest.
+     */
+    private fun keepClearOfAdChoices(adView: NativeAdView) {
+        val density = context.resources.displayMetrics.density
+        val background = adView.findViewById<View>(R.id.background)
+        val content = adView.findViewById<View>(R.id.content) ?: return
+        val inset = (background?.layoutParams as? ViewGroup.MarginLayoutParams)?.marginEnd ?: 0
+        val layoutParams = content.layoutParams as? ViewGroup.MarginLayoutParams ?: return
+        layoutParams.marginEnd = maxOf(0, (STACKED_ADCHOICES_ROOM_DP * density).toInt() - inset)
+        content.layoutParams = layoutParams
     }
 
     /** A color from Dart (0xAARRGGBB, which may arrive as a Long). */

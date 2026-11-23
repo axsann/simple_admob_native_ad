@@ -21,6 +21,15 @@
     <!-- CTA button sizes for phones (overridden for tablets in values-sw600dp/dimens.xml) -->
     <dimen name="ad_banner_cta_button_height">35dp</dimen>
     <dimen name="ad_banner_cta_button_min_width">122dp</dimen>
+    <!-- The stacked layout (simple_native_ad_stacked.xml; overridden for tablets) -->
+    <dimen name="ad_banner_stacked_margin">8dp</dimen>
+    <dimen name="ad_banner_stacked_side_margin">12dp</dimen>
+    <dimen name="ad_banner_stacked_gap">10dp</dimen>
+    <dimen name="ad_banner_stacked_cta_button_height">40dp</dimen>
+    <dimen name="ad_banner_stacked_text_size_large">15dp</dimen>
+    <!-- The text's end to the AdChoices icon's corner: 22dp, less the side margin (the factory
+         sets it from the right padding) -->
+    <dimen name="ad_banner_stacked_adchoices_room">10dp</dimen>
     <dimen name="ad_banner_no_margin">0dp</dimen>
     <dimen name="ad_banner_no_size">0dp</dimen>
 </resources>

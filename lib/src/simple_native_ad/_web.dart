@@ -12,6 +12,20 @@ enum AdColorMode {
   dark,
 }
 
+/// How the ad's parts are laid out in its slot.
+enum AdLayout {
+  /// The icon, the text beside it, and the call-to-action button at the end
+  /// of the row (default). A banner: 64 points high on a phone, 90 on a
+  /// tablet.
+  row,
+
+  /// The icon and the text beside it, and the call-to-action button on its
+  /// own line under them, as wide as the ad. 122 points high on a phone, 164
+  /// on a tablet. The icon grows or shrinks with the height (the height left
+  /// over the button).
+  stacked,
+}
+
 class SimpleNativeAd extends StatefulWidget {
   const SimpleNativeAd({
     required this.iosAdUnitId,
@@ -42,6 +56,8 @@ class SimpleNativeAd extends StatefulWidget {
     this.ctaBorderColor,
     this.borderRadius = 0,
     this.pauseRefresh = false,
+    this.layout = AdLayout.row,
+    this.padding = EdgeInsets.zero,
     super.key,
   });
 
@@ -89,6 +105,18 @@ class SimpleNativeAd extends StatefulWidget {
   /// Rounds the corners of the ad's background ([backgroundColor]). Not drawn
   /// with [showBorderTop] or [showBorderBottom], which stay square.
   final double borderRadius;
+
+  /// How the ad's parts are laid out: [AdLayout.row] (the button beside the
+  /// text) or [AdLayout.stacked] (the button on its own line under it).
+  /// Changing it reloads the ad.
+  final AdLayout layout;
+
+  /// Space between the edges of the background ([backgroundColor]) and the
+  /// ad's own view, inside [height]. The AdChoices icon sits in the corner of
+  /// the ad's view, so with a [borderRadius] it would stick out of the
+  /// rounded corner: an inset of about a quarter of the radius keeps it
+  /// inside the curve (4 for 16).
+  final EdgeInsetsGeometry padding;
 
   /// Holds the refresh while true (no ads on this platform).
   final bool pauseRefresh;

@@ -17,6 +17,20 @@ enum AdColorMode {
   dark,
 }
 
+/// How the ad's parts are laid out in its slot.
+enum AdLayout {
+  /// The icon, the text beside it, and the call-to-action button at the end
+  /// of the row (default). A banner: 64 points high on a phone, 90 on a
+  /// tablet.
+  row,
+
+  /// The icon and the text beside it, and the call-to-action button on its
+  /// own line under them, as wide as the ad. 122 points high on a phone, 164
+  /// on a tablet. The icon grows or shrinks with the height (the height left
+  /// over the button).
+  stacked,
+}
+
 class SimpleNativeAd extends StatefulWidget {
   const SimpleNativeAd({
     required this.iosAdUnitId,
@@ -47,6 +61,8 @@ class SimpleNativeAd extends StatefulWidget {
     this.ctaBorderColor,
     this.borderRadius = 0,
     this.pauseRefresh = false,
+    this.layout = AdLayout.row,
+    this.padding = EdgeInsets.zero,
     super.key,
   });
 
@@ -94,6 +110,18 @@ class SimpleNativeAd extends StatefulWidget {
   /// Rounds the corners of the ad's background ([backgroundColor]). Not drawn
   /// with [showBorderTop] or [showBorderBottom], which stay square.
   final double borderRadius;
+
+  /// How the ad's parts are laid out: [AdLayout.row] (the button beside the
+  /// text) or [AdLayout.stacked] (the button on its own line under it).
+  /// Changing it reloads the ad.
+  final AdLayout layout;
+
+  /// Space between the edges of the background ([backgroundColor]) and the
+  /// ad's own view, inside [height]. The AdChoices icon sits in the corner of
+  /// the ad's view, so with a [borderRadius] it would stick out of the
+  /// rounded corner: an inset of about a quarter of the radius keeps it
+  /// inside the curve (4 for 16).
+  final EdgeInsetsGeometry padding;
 
   /// Holds the refresh while true: the ad on show stays, and no new one is
   /// loaded until it's false again (the app coming back from the background
@@ -168,9 +196,10 @@ class SimpleNativeAdState extends State<SimpleNativeAd> {
       }
     }
 
-    // Reload ad if forceColorMode or the style changes
+    // Reload ad if forceColorMode, the layout or the style changes
     // This ensures the new color scheme is applied
     if (oldWidget.forceColorMode != widget.forceColorMode ||
+        oldWidget.layout != widget.layout ||
         !mapEquals(_styleOptions(oldWidget), _styleOptions(widget))) {
       // Dispose old ads
       _disposeAds();
@@ -245,6 +274,7 @@ class SimpleNativeAdState extends State<SimpleNativeAd> {
           : null,
       customOptions: {
         'colorMode': widget.forceColorMode.name,
+        'layout': widget.layout.name,
         if (widget.leftPadding != null) 'leftPadding': widget.leftPadding!,
         if (widget.rightPadding != null) 'rightPadding': widget.rightPadding!,
         ..._styleOptions(widget),
@@ -354,13 +384,21 @@ class SimpleNativeAdState extends State<SimpleNativeAd> {
     super.dispose();
   }
 
-  /// Returns the recommended height based on device type.
-  /// iPad: 90.0 (optimized for tablet banner ads)
-  /// iPhone: 64.0 (optimized for phone banner ads)
+  /// Returns the recommended height based on device type and layout, with
+  /// the [SimpleNativeAd.padding] around the ad.
+  /// Row: iPad 90.0 (optimized for tablet banner ads), iPhone 64.0
+  /// (optimized for phone banner ads).
+  /// Stacked: iPad 164.0, iPhone 122.0 (a 56-point icon over a 40-point
+  /// button).
   double _getRecommendedHeight(BuildContext context) {
     final shortestSide = MediaQuery.of(context).size.shortestSide;
     // iPad has shortest side >= 600
-    return shortestSide >= 600 ? 90.0 : 64.0;
+    final tablet = shortestSide >= 600;
+    final ad = switch (widget.layout) {
+      AdLayout.row => tablet ? 90.0 : 64.0,
+      AdLayout.stacked => tablet ? 164.0 : 122.0,
+    };
+    return ad + widget.padding.vertical;
   }
 
   @override
@@ -416,6 +454,9 @@ class SimpleNativeAdState extends State<SimpleNativeAd> {
                     )
                   : null,
             ),
+            // Inset from the background's edges (the AdChoices icon in the
+            // ad's corner stays inside a rounded one).
+            padding: widget.padding,
             // The one before fades out as the new one fades in (a refresh).
             child: Stack(
               fit: StackFit.expand,

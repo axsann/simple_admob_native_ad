@@ -11,6 +11,10 @@
 
 static NSString *const kSimpleNativeAdNibName = @"SimpleNativeAd";
 
+/// The stacked layout's room at the text's end for the AdChoices icon (15pt, which the SDK puts
+/// in the ad view's top-right corner): the headline doesn't run under it.
+static const CGFloat kStackedAdChoicesRoom = 22.0;
+
 @implementation SimpleNativeAdFactory
 
 /// Returns the bundle that actually carries SimpleNativeAd.nib.
@@ -33,11 +37,17 @@ static NSString *const kSimpleNativeAdNibName = @"SimpleNativeAd";
     // NOTE: Outlet connections for NativeAdView don't work well, so you need to copy the XML directly
     // https://github.com/googleads/googleads-mobile-ios-examples/blob/f52b944ddf1f33a1014aff3bd8dd0f830c5391db/Swift/advanced/SwiftUIDemo/SwiftUIDemo/Native/NativeAdView.xib#L123
 
-    // Create and place ad in view hierarchy.
-    NSBundle *bundle = [self nibBundle];
-    GADNativeAdView *nativeAdView = [bundle loadNibNamed:kSimpleNativeAdNibName
-                                                    owner:nil
-                                                  options:nil].firstObject;
+    // Create and place ad in view hierarchy: the row's layout from the .xib, the stacked one in code.
+    BOOL stacked = [self isStacked:customOptions];
+    GADNativeAdView *nativeAdView;
+    if (stacked) {
+        nativeAdView = [self stackedNativeAdView:customOptions];
+    } else {
+        NSBundle *bundle = [self nibBundle];
+        nativeAdView = [bundle loadNibNamed:kSimpleNativeAdNibName
+                                      owner:nil
+                                    options:nil].firstObject;
+    }
 
     // The ad sits in a fixed-size slot that the Flutter side lays out, so it cannot grow with
     // the user's text size. The labels use fixed fonts, but the call-to-action button is built
@@ -56,15 +66,15 @@ static NSString *const kSimpleNativeAdNibName = @"SimpleNativeAd";
     // Apply color scheme based on color mode
     [self applyColorScheme:nativeAdView isDarkMode:isDarkMode];
 
-    // Apply left padding if specified
-    NSNumber *leftPaddingValue = customOptions[@"leftPadding"];
+    // Apply left padding if specified (the stacked layout takes it as it's built)
+    NSNumber *leftPaddingValue = stacked ? nil : customOptions[@"leftPadding"];
     if (leftPaddingValue != nil) {
         CGFloat leftPadding = [leftPaddingValue doubleValue];
         [self applyLeftPadding:nativeAdView leftPadding:leftPadding];
     }
 
-    // Apply right padding if specified
-    NSNumber *rightPaddingValue = customOptions[@"rightPadding"];
+    // Apply right padding if specified (the stacked layout takes it as it's built)
+    NSNumber *rightPaddingValue = stacked ? nil : customOptions[@"rightPadding"];
     if (rightPaddingValue != nil) {
         CGFloat rightPadding = [rightPaddingValue doubleValue];
         [self applyRightPadding:nativeAdView rightPadding:rightPadding];
@@ -80,31 +90,34 @@ static NSString *const kSimpleNativeAdNibName = @"SimpleNativeAd";
 
     ((UIImageView *)nativeAdView.iconView).image = nativeAd.icon.image;
 
-    // Adjust icon vertical padding based on screen size
-    UIView *iconView = nativeAdView.iconView;
-    CGFloat screenWidth = UIScreen.mainScreen.bounds.size.width;
-    CGFloat iconVerticalPadding = (screenWidth >= 600) ? 12.0 : 8.0; // Larger padding for iPad
+    UIImageView *iconImageView = (UIImageView *)nativeAdView.iconView;
+    // The row's icon: its padding and corners (the stacked layout sets its own as it's built)
+    if (!stacked) {
+        // Adjust icon vertical padding based on screen size
+        UIView *iconView = nativeAdView.iconView;
+        CGFloat screenWidth = UIScreen.mainScreen.bounds.size.width;
+        CGFloat iconVerticalPadding = (screenWidth >= 600) ? 12.0 : 8.0; // Larger padding for iPad
 
-    // Update icon view constraints for better spacing on larger screens
-    // Only adjust top/bottom padding, not leading (left padding is controlled separately)
-    for (NSLayoutConstraint *constraint in iconView.superview.constraints) {
-        if (constraint.firstItem == iconView || constraint.secondItem == iconView) {
-            if (constraint.firstAttribute == NSLayoutAttributeTop ||
-                constraint.firstAttribute == NSLayoutAttributeBottom) {
-                constraint.constant = iconVerticalPadding;
+        // Update icon view constraints for better spacing on larger screens
+        // Only adjust top/bottom padding, not leading (left padding is controlled separately)
+        for (NSLayoutConstraint *constraint in iconView.superview.constraints) {
+            if (constraint.firstItem == iconView || constraint.secondItem == iconView) {
+                if (constraint.firstAttribute == NSLayoutAttributeTop ||
+                    constraint.firstAttribute == NSLayoutAttributeBottom) {
+                    constraint.constant = iconVerticalPadding;
+                }
             }
         }
-    }
 
-    // Apply rounded corners to icon (dynamically calculated based on icon size)
-    // NOTE: This overrides the static corner radius defined in SimpleNativeAd.xib (6pt)
-    UIImageView *iconImageView = (UIImageView *)nativeAdView.iconView;
-    iconImageView.clipsToBounds = YES;
-    // Use 6% of the icon width as corner radius for a subtle rounded effect
-    // The static value in XIB is only used as a fallback for Interface Builder preview
-    CGFloat iconWidth = iconImageView.frame.size.width;
-    CGFloat cornerRadius = iconWidth * 0.06;
-    iconImageView.layer.cornerRadius = cornerRadius;
+        // Apply rounded corners to icon (dynamically calculated based on icon size)
+        // NOTE: This overrides the static corner radius defined in SimpleNativeAd.xib (6pt)
+        iconImageView.clipsToBounds = YES;
+        // Use 6% of the icon width as corner radius for a subtle rounded effect
+        // The static value in XIB is only used as a fallback for Interface Builder preview
+        CGFloat iconWidth = iconImageView.frame.size.width;
+        CGFloat cornerRadius = iconWidth * 0.06;
+        iconImageView.layer.cornerRadius = cornerRadius;
+    }
 
     // Add border to icon with dynamic color support for light/dark mode
     iconImageView.layer.borderWidth = 0.5;
@@ -133,7 +146,17 @@ static NSString *const kSimpleNativeAdNibName = @"SimpleNativeAd";
     // White text on blue background for better visibility and conversion
     [ctaButton setTitleColor:UIColor.whiteColor forState:UIControlStateNormal];
     ctaButton.backgroundColor = UIColor.systemBlueColor;
-    ctaButton.layer.cornerRadius = ctaButton.bounds.size.height / 2.0; // Capsule shape
+    // Capsule shape (the stacked button isn't laid out yet: its height is known)
+    ctaButton.layer.cornerRadius = (stacked ? [self stackedButtonHeight] : ctaButton.bounds.size.height) / 2.0;
+    if (stacked) {
+        if (@available(iOS 15.0, *)) {
+            if (ctaButton.configuration != nil) {
+                UIButtonConfiguration *configuration = ctaButton.configuration;
+                configuration.title = nativeAd.callToAction;
+                ctaButton.configuration = configuration;
+            }
+        }
+    }
 
     // The app's label and colors, over the color mode's
     [self applyStyle:nativeAdView customOptions:customOptions];
@@ -145,6 +168,140 @@ static NSString *const kSimpleNativeAdNibName = @"SimpleNativeAd";
     // Note: this should always be done after populating the ad views.
     nativeAdView.nativeAd = nativeAd;
 
+    return nativeAdView;
+}
+
+- (BOOL)isStacked:(NSDictionary *)customOptions {
+    return [customOptions[@"layout"] isEqual:@"stacked"];
+}
+
+- (BOOL)isPad {
+    return UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad;
+}
+
+/// The stacked layout's button: as high as the app's own buttons (40pt, iPad 48pt).
+- (CGFloat)stackedButtonHeight {
+    return [self isPad] ? 48.0 : 40.0;
+}
+
+/// The call-to-action's title font: 15pt (iPad 17pt), semibold on the stacked layout's wide button.
+- (UIFont *)ctaFont:(NSDictionary *)customOptions {
+    return [UIFont systemFontOfSize:([self isPad] ? 17.0 : 15.0)
+                             weight:([self isStacked:customOptions] ? UIFontWeightSemibold : UIFontWeightRegular)];
+}
+
+/// The stacked layout, built in code: the icon and the text beside it (the headline, then the
+/// "Ad" badge and the body in a row, as in the .xib, where adLabelIn: finds the badge), and the
+/// call-to-action button on its own line under them, as wide as the ad. The icon is as high as
+/// what's left over the button, so it grows with the slot. The text keeps clear of the AdChoices
+/// icon in the top-right corner.
+- (GADNativeAdView *)stackedNativeAdView:(NSDictionary *)customOptions {
+    BOOL pad = [self isPad];
+    CGFloat margin = pad ? 12.0 : 8.0;
+    CGFloat gap = pad ? 12.0 : 10.0;
+    NSNumber *leftPaddingValue = customOptions[@"leftPadding"];
+    NSNumber *rightPaddingValue = customOptions[@"rightPadding"];
+    CGFloat leading = leftPaddingValue != nil ? [leftPaddingValue doubleValue] : 12.0;
+    CGFloat trailing = rightPaddingValue != nil ? [rightPaddingValue doubleValue] : 12.0;
+
+    GADNativeAdView *nativeAdView = [[GADNativeAdView alloc] initWithFrame:CGRectMake(0, 0, 360, 122)];
+    nativeAdView.backgroundColor = UIColor.clearColor;
+
+    UIImageView *icon = [[UIImageView alloc] init];
+    icon.translatesAutoresizingMaskIntoConstraints = NO;
+    icon.userInteractionEnabled = NO;
+    icon.contentMode = UIViewContentModeScaleAspectFit;
+    icon.clipsToBounds = YES;
+    icon.layer.cornerRadius = pad ? 12.0 : 10.0;
+
+    UILabel *headline = [[UILabel alloc] init];
+    headline.font = [UIFont boldSystemFontOfSize:(pad ? 17.0 : 15.0)];
+    headline.numberOfLines = 2;
+    headline.lineBreakMode = NSLineBreakByTruncatingTail;
+    [headline setContentCompressionResistancePriority:UILayoutPriorityDefaultHigh + 1
+                                              forAxis:UILayoutConstraintAxisVertical];
+
+    UILabel *badge = [[UILabel alloc] init];
+    badge.translatesAutoresizingMaskIntoConstraints = NO;
+    badge.text = @"Ad";
+    badge.font = [UIFont systemFontOfSize:9.0];
+    badge.textAlignment = NSTextAlignmentCenter;
+    badge.layer.cornerRadius = 3.0;
+    badge.layer.masksToBounds = YES;
+    // A width of its own (applyStyle: widens it for a longer label)
+    [badge.widthAnchor constraintEqualToConstant:23.0].active = YES;
+    [badge.heightAnchor constraintEqualToConstant:15.0].active = YES;
+    [badge setContentHuggingPriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisHorizontal];
+    [badge setContentCompressionResistancePriority:UILayoutPriorityRequired
+                                           forAxis:UILayoutConstraintAxisHorizontal];
+
+    UILabel *body = [[UILabel alloc] init];
+    body.font = [UIFont systemFontOfSize:(pad ? 14.0 : 12.0)];
+    body.numberOfLines = 1;
+    body.lineBreakMode = NSLineBreakByTruncatingTail;
+    [body setContentCompressionResistancePriority:UILayoutPriorityDefaultLow
+                                          forAxis:UILayoutConstraintAxisHorizontal];
+
+    UIStackView *row = [[UIStackView alloc] initWithArrangedSubviews:@[badge, body]];
+    row.axis = UILayoutConstraintAxisHorizontal;
+    row.alignment = UIStackViewAlignmentCenter;
+    row.spacing = 8.0;
+
+    UIStackView *texts = [[UIStackView alloc] initWithArrangedSubviews:@[headline, row]];
+    texts.translatesAutoresizingMaskIntoConstraints = NO;
+    texts.axis = UILayoutConstraintAxisVertical;
+    texts.alignment = UIStackViewAlignmentFill;
+    texts.spacing = 4.0;
+
+    UIButton *cta;
+    if (@available(iOS 15.0, *)) {
+        UIButtonConfiguration *configuration = [UIButtonConfiguration grayButtonConfiguration];
+        configuration.cornerStyle = UIButtonConfigurationCornerStyleCapsule;
+        configuration.title = @"Install";
+        configuration.titleLineBreakMode = NSLineBreakByTruncatingTail;
+        UIFont *font = [self ctaFont:customOptions];
+        configuration.titleTextAttributesTransformer =
+            ^NSDictionary<NSAttributedStringKey, id> *(NSDictionary<NSAttributedStringKey, id> *incoming) {
+                NSMutableDictionary<NSAttributedStringKey, id> *outgoing = [incoming mutableCopy];
+                outgoing[NSFontAttributeName] = font;
+                return outgoing;
+            };
+        cta = [UIButton buttonWithConfiguration:configuration primaryAction:nil];
+    } else {
+        cta = [UIButton buttonWithType:UIButtonTypeSystem];
+        cta.titleLabel.font = [self ctaFont:customOptions];
+    }
+    cta.translatesAutoresizingMaskIntoConstraints = NO;
+
+    [nativeAdView addSubview:icon];
+    [nativeAdView addSubview:texts];
+    [nativeAdView addSubview:cta];
+
+    // The text beside the icon, centered on it while it fits, else kept between the top and the
+    // button (a small icon).
+    NSLayoutConstraint *centered = [texts.centerYAnchor constraintEqualToAnchor:icon.centerYAnchor];
+    centered.priority = UILayoutPriorityDefaultHigh - 50;
+    [NSLayoutConstraint activateConstraints:@[
+        [icon.leadingAnchor constraintEqualToAnchor:nativeAdView.leadingAnchor constant:leading],
+        [icon.topAnchor constraintEqualToAnchor:nativeAdView.topAnchor constant:margin],
+        [icon.bottomAnchor constraintEqualToAnchor:cta.topAnchor constant:-gap],
+        [icon.widthAnchor constraintEqualToAnchor:icon.heightAnchor],
+        [texts.leadingAnchor constraintEqualToAnchor:icon.trailingAnchor constant:gap],
+        [texts.trailingAnchor constraintEqualToAnchor:nativeAdView.trailingAnchor
+                                             constant:-MAX(trailing, kStackedAdChoicesRoom)],
+        centered,
+        [texts.topAnchor constraintGreaterThanOrEqualToAnchor:nativeAdView.topAnchor],
+        [texts.bottomAnchor constraintLessThanOrEqualToAnchor:cta.topAnchor constant:-4.0],
+        [cta.leadingAnchor constraintEqualToAnchor:nativeAdView.leadingAnchor constant:leading],
+        [cta.trailingAnchor constraintEqualToAnchor:nativeAdView.trailingAnchor constant:-trailing],
+        [cta.bottomAnchor constraintEqualToAnchor:nativeAdView.bottomAnchor constant:-margin],
+        [cta.heightAnchor constraintEqualToConstant:[self stackedButtonHeight]],
+    ]];
+
+    nativeAdView.iconView = icon;
+    nativeAdView.headlineView = headline;
+    nativeAdView.bodyView = body;
+    nativeAdView.callToActionView = cta;
     return nativeAdView;
 }
 
@@ -264,9 +421,8 @@ static NSString *const kSimpleNativeAdNibName = @"SimpleNativeAd";
             NSString *title = [ctaButton titleForState:UIControlStateNormal];
             if (title) configuration.title = title;
             // The configuration ignores titleLabel.font and draws 17pt: give it the 15pt
-            // (iPad 17pt) set above, as Android's.
-            UIFont *font = [UIFont systemFontOfSize:(UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad ? 17.0 : 15.0)
-                                             weight:UIFontWeightRegular];
+            // (iPad 17pt) set above, as Android's (semibold on the stacked layout's wide button).
+            UIFont *font = [self ctaFont:customOptions];
             configuration.titleTextAttributesTransformer =
                 ^NSDictionary<NSAttributedStringKey, id> *(NSDictionary<NSAttributedStringKey, id> *incoming) {
                     NSMutableDictionary<NSAttributedStringKey, id> *outgoing = [incoming mutableCopy];
