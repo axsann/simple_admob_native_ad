@@ -5,7 +5,7 @@ A simple, compact Flutter plugin for displaying Google AdMob native ads as banne
 ## Features
 
 - ✅ **Native Ad Integration**: Display Google AdMob native ads with custom layouts
-- ✅ **Auto-Refresh**: Automatically reload ads every 5 minutes (configurable)
+- ✅ **Auto-Refresh**: Automatically reload ads every 5 minutes (configurable). The ad on show stays until the next one has loaded, then cross-fades into it, and can be held while it isn't seen (`pauseRefresh`)
 - ✅ **Lifecycle Management**: Pause/resume ad timer based on app lifecycle
 - ✅ **Platform Support**: iOS and Android (Web, macOS, Windows, Linux not supported)
 - ✅ **Customizable Placeholder**: Show custom widget while ad is loading
@@ -252,9 +252,10 @@ testNativeAdvancedAdUnitIdAndroid: 'ca-app-pub-3940256099942544/2247696110'
 | `placeholder` | Widget? | No | null | Widget to display while ad is loading |
 | `height` | double? | No | Auto (90.0 for iPad, 64.0 for iPhone) | Height of the ad banner in pixels |
 | `refreshInterval` | Duration | No | 5 minutes | How often to reload the ad |
-| `animationDuration` | Duration | No | 300 milliseconds | Duration of transition animation between placeholder and ad |
-| `onAdLoaded` | VoidCallback? | No | null | Callback when ad is loaded successfully |
-| `onAdFailedToLoad` | VoidCallback? | No | null | Callback when ad fails to load |
+| `pauseRefresh` | bool | No | false | Holds the refresh while true (the ad on show stays). Set it while the ad can't be seen |
+| `animationDuration` | Duration | No | 300 milliseconds | Duration of the fades: placeholder to ad, and one ad to the next |
+| `onAdLoaded` | VoidCallback? | No | null | Callback when an ad is loaded (the first, and each refresh) |
+| `onAdFailedToLoad` | VoidCallback? | No | null | Callback when no ad could be loaded and none is on show (a failed refresh keeps the ad on show and isn't reported) |
 | `showBorderTop` | bool | No | false | Whether to show top border |
 | `borderTopWidth` | double | No | 1.0 | Width of top border |
 | `borderTopColor` | Color? | No | Theme-based | Color of top border |
@@ -287,6 +288,24 @@ timerController.startTimer?.call();
 // Stop timer (call in dispose())
 timerController.stopTimer?.call();
 ```
+
+### Holding the refresh while the ad isn't seen
+
+An ad shouldn't be replaced where nobody sees it. In a list, or under your app's own bars, pass
+`pauseRefresh: true` while it's out of sight: the ad on show stays, and the refresh (and the one
+the app coming back from the background would start) waits until it's `false` again.
+
+```dart
+SimpleNativeAd(
+  iosAdUnitId: 'ca-app-pub-3940256099942544/3986624511',
+  androidAdUnitId: 'ca-app-pub-3940256099942544/2247696110',
+  timerController: _timerController,
+  pauseRefresh: !_adIsVisible,
+)
+```
+
+In a `ListView`, keep the ad's row alive (`AutomaticKeepAliveClientMixin`) so that scrolling away
+and back shows the same ad rather than loading a new one.
 
 ## Customization Examples
 

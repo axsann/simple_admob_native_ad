@@ -46,6 +46,7 @@ class SimpleNativeAd extends StatefulWidget {
     this.ctaTextColor,
     this.ctaBorderColor,
     this.borderRadius = 0,
+    this.pauseRefresh = false,
     super.key,
   });
 
@@ -94,18 +95,43 @@ class SimpleNativeAd extends StatefulWidget {
   /// with [showBorderTop] or [showBorderBottom], which stay square.
   final double borderRadius;
 
+  /// Holds the refresh while true: the ad on show stays, and no new one is
+  /// loaded until it's false again (the app coming back from the background
+  /// doesn't start it either, nor does [SimpleNativeAdTimerController]). Set
+  /// it while the ad can't be seen, scrolled away in a list or under the app's
+  /// bars, say: an ad shouldn't be replaced where nobody sees it. The first ad
+  /// still loads.
+  final bool pauseRefresh;
+
   @override
   SimpleNativeAdState createState() => SimpleNativeAdState();
 }
 
 class SimpleNativeAdState extends State<SimpleNativeAd> {
   late final AppLifecycleListener _lifecycleListener;
+
+  /// The ad on show (null until the first one loads).
   NativeAd? _nativeAd;
-  bool _nativeAdIsLoaded = false;
+
+  /// The one it replaced, fading out under it, then disposed.
+  NativeAd? _leaving;
+
+  /// The next one, loading (the first, or a refresh's): the one on show stays
+  /// meanwhile, and if it fails.
+  NativeAd? _loading;
+
+  /// The first ad has faded in (the whole ad, its background too).
   bool _showAdWithOpacity = false;
+
+  /// The ad on show has faded in over the one it replaced.
+  bool _arrived = true;
+
   Timer? _timer;
+  Timer? _swap;
+
+  /// Seconds since the last load. Not state: nothing shows it (it was set
+  /// with setState every second, building the ad again for nothing).
   int _counter = 0;
-  late final int _maxCount;
 
   late final _adUnitId = _getAdUnitId();
 
@@ -113,20 +139,14 @@ class SimpleNativeAdState extends State<SimpleNativeAd> {
   void initState() {
     super.initState();
 
-    _maxCount = widget.refreshInterval.inSeconds;
-
     widget.timerController.startTimer = startTimer;
     widget.timerController.stopTimer = stopTimer;
 
     _lifecycleListener = AppLifecycleListener(
       // Resume timer when app returns from background
-      onResume: () {
-        startTimer();
-      },
+      onResume: startTimer,
       // Stop timer when app goes to background
-      onPause: () {
-        stopTimer();
-      },
+      onPause: stopTimer,
     );
     startTimer();
 
@@ -137,14 +157,25 @@ class SimpleNativeAdState extends State<SimpleNativeAd> {
   void didUpdateWidget(SimpleNativeAd oldWidget) {
     super.didUpdateWidget(oldWidget);
 
+    if (oldWidget.pauseRefresh != widget.pauseRefresh) {
+      final resumed =
+          WidgetsBinding.instance.lifecycleState == null ||
+          WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
+      if (widget.pauseRefresh) {
+        stopTimer();
+      } else if (resumed) {
+        startTimer();
+      }
+    }
+
     // Reload ad if forceColorMode or the style changes
     // This ensures the new color scheme is applied
     if (oldWidget.forceColorMode != widget.forceColorMode ||
         !mapEquals(_styleOptions(oldWidget), _styleOptions(widget))) {
-      // Dispose old ad
-      _nativeAd?.dispose();
-      _nativeAdIsLoaded = false;
+      // Dispose old ads
+      _disposeAds();
       _showAdWithOpacity = false;
+      _arrived = true;
 
       // Load new ad with updated color mode
       _loadAd();
@@ -161,19 +192,17 @@ class SimpleNativeAdState extends State<SimpleNativeAd> {
     }
   }
 
-  /// Loads a native ad.
+  /// Loads a native ad: the first, or the next one. The one on show stays
+  /// until the next has loaded, then fades into it ([_show]); until 2.4.0 it
+  /// went at once and the placeholder showed while the next loaded (a blink
+  /// every refresh), and it was never disposed.
   void _loadAd() {
     final adUnitId = _adUnitId;
-    if (adUnitId == null) {
+    if (adUnitId == null || _loading != null) {
       return;
     }
 
-    setState(() {
-      _nativeAdIsLoaded = false;
-      _showAdWithOpacity = false;
-    });
-
-    _nativeAd = NativeAd(
+    _loading = NativeAd(
       adUnitId: adUnitId,
       factoryId:
           'simpleAdmobNativeAdFactory', // Factory ID implemented in native code
@@ -182,17 +211,11 @@ class SimpleNativeAdState extends State<SimpleNativeAd> {
           if (kDebugMode) {
             print('$NativeAd loaded.');
           }
-          setState(() {
-            _nativeAdIsLoaded = true;
-          });
-          // Trigger opacity animation after a frame
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              setState(() {
-                _showAdWithOpacity = true;
-              });
-            }
-          });
+          if (!mounted || !identical(ad, _loading)) {
+            return;
+          }
+          _loading = null;
+          _show(ad as NativeAd);
           widget.onAdLoaded?.call();
         },
         onAdFailedToLoad: (ad, error) {
@@ -200,7 +223,14 @@ class SimpleNativeAdState extends State<SimpleNativeAd> {
             print('$NativeAd failedToLoad: $error');
           }
           ad.dispose();
-          widget.onAdFailedToLoad?.call();
+          if (!mounted || !identical(ad, _loading)) {
+            return;
+          }
+          _loading = null;
+          // A refresh that failed keeps the ad on show: nothing to tell.
+          if (_nativeAd == null) {
+            widget.onAdFailedToLoad?.call();
+          }
         },
         onAdClicked: (ad) {},
         onAdImpression: (ad) {},
@@ -222,6 +252,63 @@ class SimpleNativeAdState extends State<SimpleNativeAd> {
     )..load();
   }
 
+  /// Puts [ad] on show: the first fades in, a later one fades in over the one
+  /// before, which fades out and is disposed once it's out of the tree.
+  void _show(NativeAd ad) {
+    final before = _nativeAd;
+    // One still leaving from a refresh before (no time to finish): gone now.
+    _dropLeaving();
+    setState(() {
+      _nativeAd = ad;
+      _leaving = before;
+      _arrived = before == null;
+    });
+    // After a frame, with its view in place (transparent).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !identical(_nativeAd, ad)) {
+        return;
+      }
+      setState(() {
+        _showAdWithOpacity = true;
+        _arrived = true;
+      });
+    });
+    if (before != null) {
+      _swap = Timer(
+        widget.animationDuration + const Duration(milliseconds: 100),
+        () {
+          if (mounted) {
+            setState(_dropLeaving);
+          }
+        },
+      );
+    }
+  }
+
+  /// Takes the leaving ad out, and disposes it once its view is out of the
+  /// tree (after the frame).
+  void _dropLeaving() {
+    _swap?.cancel();
+    _swap = null;
+    final leaving = _leaving;
+    if (leaving == null) {
+      return;
+    }
+    _leaving = null;
+    WidgetsBinding.instance.addPostFrameCallback((_) => leaving.dispose());
+  }
+
+  void _disposeAds() {
+    _swap?.cancel();
+    _swap = null;
+    _nativeAd?.dispose();
+    _leaving?.dispose();
+    _loading?.dispose();
+    _nativeAd = null;
+    _leaving = null;
+    _loading = null;
+  }
+
   /// The label and colors the native side draws with (colors as 0xAARRGGBB).
   static Map<String, Object> _styleOptions(SimpleNativeAd widget) => {
     if (widget.adLabel != null) 'adLabel': widget.adLabel!,
@@ -237,23 +324,19 @@ class SimpleNativeAdState extends State<SimpleNativeAd> {
       'ctaBorderColor': widget.ctaBorderColor!.toARGB32(),
   };
 
+  /// Starts the refresh (not while [SimpleNativeAd.pauseRefresh]).
   void startTimer() {
-    if (_timer == null || !_timer!.isActive) {
-      _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        if (_counter == _maxCount) {
-          // Reload ad when counter reaches maxCount
-          _loadAd();
-          // Reset counter
-          setState(() {
-            _counter = 0;
-          });
-        } else {
-          setState(() {
-            _counter++;
-          });
-        }
-      });
+    if (!mounted || widget.pauseRefresh || (_timer?.isActive ?? false)) {
+      return;
     }
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      _counter++;
+      if (_counter >= widget.refreshInterval.inSeconds) {
+        // Reload ad when the interval has passed
+        _counter = 0;
+        _loadAd();
+      }
+    });
   }
 
   void stopTimer() {
@@ -267,7 +350,7 @@ class SimpleNativeAdState extends State<SimpleNativeAd> {
   void dispose() {
     stopTimer();
     _lifecycleListener.dispose();
-    _nativeAd?.dispose();
+    _disposeAds();
     super.dispose();
   }
 
@@ -294,7 +377,9 @@ class SimpleNativeAdState extends State<SimpleNativeAd> {
     final defaultBackgroundColor =
         widget.backgroundColor ?? Theme.of(context).colorScheme.surface;
 
-    if (_nativeAdIsLoaded && _nativeAd != null) {
+    final nativeAd = _nativeAd;
+    if (nativeAd != null) {
+      final leaving = _leaving;
       return AnimatedOpacity(
         opacity: _showAdWithOpacity ? 1.0 : 0.0,
         duration: widget.animationDuration,
@@ -331,11 +416,24 @@ class SimpleNativeAdState extends State<SimpleNativeAd> {
                     )
                   : null,
             ),
-            child: AdWidget(
-              key: ValueKey(
-                '${_nativeAd.hashCode}_${widget.forceColorMode.name}',
-              ),
-              ad: _nativeAd!,
+            // The one before fades out as the new one fades in (a refresh).
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (leaving != null)
+                  AnimatedOpacity(
+                    key: ObjectKey(leaving),
+                    opacity: _arrived ? 0.0 : 1.0,
+                    duration: widget.animationDuration,
+                    child: AdWidget(ad: leaving),
+                  ),
+                AnimatedOpacity(
+                  key: ObjectKey(nativeAd),
+                  opacity: _arrived ? 1.0 : 0.0,
+                  duration: widget.animationDuration,
+                  child: AdWidget(ad: nativeAd),
+                ),
+              ],
             ),
           ),
         ),
