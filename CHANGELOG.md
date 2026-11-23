@@ -1,3 +1,18 @@
+## 2.4.0
+
+* **A refresh no longer blinks.** The ad on show stays until the next one has loaded, then
+  cross-fades into it (`animationDuration`). Until now it went at once and the placeholder
+  showed while the next one loaded. A refresh that fails keeps the ad on show.
+* **Fix: the ad a refresh replaced was never disposed**, so each refresh kept one more ad
+  (and its native view) in memory for as long as the widget was up. It's disposed once its
+  view is out of the tree.
+* **New `pauseRefresh`** (default `false`): holds the refresh while the ad can't be seen,
+  scrolled away in a list or under the app's bars, say. The app coming back from the
+  background doesn't start the refresh while it's `true`.
+* `onAdFailedToLoad` is called only when no ad is on show (not for a failed refresh).
+* The ad no longer builds again every second (the refresh countdown was kept with
+  `setState`).
+
 ## 2.3.0
 
 * **Style options to match the app's look.** New optional parameters: `adLabel` (the

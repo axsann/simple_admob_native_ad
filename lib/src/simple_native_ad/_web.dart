@@ -41,6 +41,7 @@ class SimpleNativeAd extends StatefulWidget {
     this.ctaTextColor,
     this.ctaBorderColor,
     this.borderRadius = 0,
+    this.pauseRefresh = false,
     super.key,
   });
 
@@ -88,6 +89,9 @@ class SimpleNativeAd extends StatefulWidget {
   /// Rounds the corners of the ad's background ([backgroundColor]). Not drawn
   /// with [showBorderTop] or [showBorderBottom], which stay square.
   final double borderRadius;
+
+  /// Holds the refresh while true (no ads on this platform).
+  final bool pauseRefresh;
 
   @override
   State<SimpleNativeAd> createState() => _SimpleNativeAdState();
