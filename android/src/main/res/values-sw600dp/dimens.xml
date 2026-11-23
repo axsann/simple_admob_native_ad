@@ -15,4 +15,10 @@
     <dimen name="ad_banner_text_size_small">14dp</dimen>
     <dimen name="ad_banner_text_size_large">16dp</dimen>
     <dimen name="ad_banner_text_size_cta">17dp</dimen>
+
+    <!-- The stacked layout (vs phone: 8dp margins, 10dp gap, 40dp button, 15dp headline) -->
+    <dimen name="ad_banner_stacked_margin">12dp</dimen>
+    <dimen name="ad_banner_stacked_gap">12dp</dimen>
+    <dimen name="ad_banner_stacked_cta_button_height">48dp</dimen>
+    <dimen name="ad_banner_stacked_text_size_large">17dp</dimen>
 </resources>
