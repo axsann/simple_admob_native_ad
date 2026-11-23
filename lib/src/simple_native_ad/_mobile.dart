@@ -119,8 +119,10 @@ class SimpleNativeAd extends StatefulWidget {
   /// Space between the edges of the background ([backgroundColor]) and the
   /// ad's own view, inside [height]. The AdChoices icon sits in the corner of
   /// the ad's view, so with a [borderRadius] it would stick out of the
-  /// rounded corner: an inset of about a quarter of the radius keeps it
-  /// inside the curve (4 for 16).
+  /// rounded corner. Give about 6 for a radius of 16: the icon is a 15-point
+  /// square with corners rounded by about 3, and with 6 its corner keeps about
+  /// 3 points clear of the curve (measured on an iPhone). With 4 it stays
+  /// inside but its corner touches the curve (0.2 points).
   final EdgeInsetsGeometry padding;
 
   /// Holds the refresh while true: the ad on show stays, and no new one is
